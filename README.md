@@ -47,9 +47,9 @@ Don't worry these are just backend apis that will be
 used by the UI. Once there is a UI you won't need these :)
 
 ### Supported commands:
-- join
-- part
-- msg
+- join aliased j
+- part aliased p
+- msg  aliased m
 - nick
 - quit
 

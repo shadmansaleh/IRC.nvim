@@ -3,7 +3,9 @@ local handlers = {}
 local protocol = require'nirc.irc.protocol'
 
 local buffer_text = {}
-local buf_nr = 111
+
+vim.cmd('new')
+local buf_nr = vim.fn.bufnr()
 local pr = print
 
 -- Temporary solution for testing
@@ -28,7 +30,7 @@ end
 local function handshake(client, responce)
   if responce.cmd == 'NOTICE' and responce.args[#responce.args]:find('No Ident response') then
     client:send_cmd('nick', client.config.nick)
-    client:send_cmd('user', client.config.nick, client.config.nick)
+    client:send_cmd('user', client.config.username, client.config.username)
     return false
   end
   -- we are accepted
@@ -39,7 +41,7 @@ local function handshake(client, responce)
   if responce.cmd == '433' then
     client.config.nick = '_'..client.config.nick
     client:send_cmd("nick", client.config.nick)
-    client:send_cmd('user', client.config.nick, client.config.nick)
+    client:send_cmd('user', client.config.username, client.config.username)
     return false
   end
   -- Ping from server

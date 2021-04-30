@@ -1,25 +1,34 @@
 local protocol = {}
 
-local commands = {
+-- Supported comands
+protocol.commands = {
   join = {'JOIN %s', args = 1},
   part = {'PART %s',  args = 1},
-  msg = {'PRIVMSG %s %s', args = 2},
+  msg  = {'PRIVMSG %s %s', args = 2},
   nick = {'NICK %s', args = 1},
-  user = {'USER %s * * %s', args = 2},
+  user = {'USER %s 0 * %s', args = 2},
   quit = {'QUIT', args = 1}
+}
+
+-- Supported alaises
+protocol.aliases = {
+  j = 'join',
+  p = 'part',
+  m = 'msg'
 }
 
 function protocol.cmd_format(...)
   local args = {...}
   local cmd = args[1]
   table.remove(args, 1)
-  if commands[cmd] then
+  if protocol.aliases.cmd then cmd = protocol.aliases[cmd] end
+  if protocol.commands[cmd] then
     local msg = {}
-    for i=commands[cmd].args, #args do
+    for i=protocol.commands[cmd].args, #args do
       table.insert(msg, args[i])
     end
-    table.insert(args, commands[cmd].args, ':'..table.concat(msg, ' '))
-    return string.format(commands[cmd][1], unpack(args))
+    table.insert(args, protocol.commands[cmd].args, ':'..table.concat(msg, ' '))
+    return string.format(protocol.commands[cmd][1], unpack(args))
   end
   return nil, 'Unsupported command'
 end
@@ -51,7 +60,7 @@ function protocol.parse_msg(msg)
     local name = source:find('!')
     local addr = source:find('@')
     if name and addr then
-      result.nick, result.uname, result.addr = source:match('(.-)!(.-)@(.*)')
+      result.nick, result.username, result.addr = source:match('(.-)!(.-)@(.*)')
     elseif not name and addr then
       result.nick, result.addr = source:match('(.-)@(.*)')
     else
