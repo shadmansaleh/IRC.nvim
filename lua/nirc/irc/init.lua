@@ -63,8 +63,11 @@ function client:prompt(str)
 end
 
 function client:disconnect()
+  if self.conc.is_closed() then return end
   self.conc:read_stop()
-  self.conc:close()
+  if not self.conc:is_closing() then
+    self.conc:close()
+  end
 end
 
 return client

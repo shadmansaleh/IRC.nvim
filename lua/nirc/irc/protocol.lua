@@ -35,7 +35,7 @@ end
 
 -- raw commands
 function command_handlers.raw(client, _, ...)
-  client:send_raw(...)
+  client:send_raw(table.concat({...}))
   return true, 'Raw sent'
 end
 
@@ -49,7 +49,7 @@ end
 -- Send quit
 function command_handlers.quit(client, _, ...)
   client:send_raw(protocol.commands_strs.quit[1], ...)
-  client:disconnect()
+  vim.wait(1000, function() client:disconnect() end)
 end
 
 function protocol.cmd_execute(client, cmd, ...)

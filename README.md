@@ -52,6 +52,7 @@ used by the UI. Once there is a UI you won't need these :)
 - msg  aliased m
 - nick
 - quit
+- raw
 
 ### TODO
 - [ ] Quite litraly Alot.
