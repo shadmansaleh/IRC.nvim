@@ -1,6 +1,15 @@
+--[[
+
+  This file implements abtraction layer over the connection.
+  It connects, receives and sends messages to server.
+
+  The user should call cliant:prompt() for all kinds of
+  interaction with the server.
+
+--]]
+
 local client = {}
 
-local log = require('nirc.log')
 local handlers = require('nirc.irc.handlers')
 local protocol = require('nirc.irc.protocol')
 
@@ -32,8 +41,8 @@ function client:connect()
   self.conc = uv.new_tcp()
   uv.tcp_connect(self.conc, conf.server_ip, conf.port, function(err)
     assert(not err, err)
-    self.conc:read_start(vim.schedule_wrap(function(err, chunk)
-      handlers.responce_handler(self, err, chunk)
+    self.conc:read_start(vim.schedule_wrap(function(error, chunk)
+      handlers.responce_handler(self, error, chunk)
     end))
   end)
 end
@@ -44,7 +53,7 @@ function client:send_cmd(cmd, ...)
 end
 
 function client:send_raw(...)
-  local msg = string.format(...)
+  local msg = vim.trim(string.format(...))
   if msg then
     self.conc:write(msg..'\r\n')
     local parsed_msg = protocol.parse_msg(msg)

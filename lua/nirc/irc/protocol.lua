@@ -1,13 +1,43 @@
+--[[
+
+  Mainly hanldes sending properly formated messages to server.
+  Besides that parse_message parses both massages ariving from
+  server and messages sent to server.
+
+  if a function exists with cammand name in command_handlers table
+  it will be called to handle the cmd.
+  Otherwise the default handler will be called to handle the cmd.
+
+  Default handler looks up command_strs and formats the message
+
+  In the end all messages are sent with client:send_raw()
+
+--]]
+
 local protocol = {}
 
--- Supported comands
+-- Command patterns used by default handler to handle commands
 protocol.commands_strs = {
-  join = {'JOIN %s', args = 1},
-  part = {'PART %s',  args = 1},
-  msg  = {'PRIVMSG %s %s', args = 2},
-  nick = {'NICK %s', args = 1},
-  user = {'USER %s 0 * %s', args = 2},
-  quit = {'QUIT', args = 1}
+  -- name = { format, arg_count }
+  join = {'JOIN %s %s', 2},
+  part = {'PART %s %s',  2},
+  msg  = {'PRIVMSG %s %s', 2},
+  nick = {'NICK %s', 1},
+  user = {'USER %s 0 * :%s', 2},
+  pass = {'PASS %s', 1},
+  quit = {'QUIT', 1},
+  oper = {'OPER %s %s', 2},
+  motd = {'MOTD %s', 1},
+  version = {'VERSION %s', 1},
+  admin = {'ADMIN %s', 1},
+  connect = {'CONNECT %s %s %s', 3},
+  time = {'TIME %s', 1},
+  stats = {'STATS %s %s', 2},
+  info = {'INFO %s', 1},
+  mode = {'MODE %s %s %s', 3},
+  notice = {'NOTICE %s %s', 2},
+  userhost = {'USERHOST %s %s %s %s %s', 5},
+  kill = {'KILL %s %s', 2},
 }
 
 -- Supported alaises
@@ -23,10 +53,10 @@ function command_handlers.default(client, cmd, ...)
   local args = {...}
   if protocol.commands_strs[cmd] then
     local msg = {}
-    for i=protocol.commands_strs[cmd].args, #args do
+    for i=protocol.commands_strs[cmd][2], #args do
       table.insert(msg, args[i])
     end
-    table.insert(args, protocol.commands_strs[cmd].args, ':'..table.concat(msg, ' '))
+    table.insert(args, protocol.commands_strs[cmd][2], ':'..table.concat(msg, ' '))
     client:send_raw(protocol.commands_strs[cmd][1], unpack(args))
     return true, 'command sent'
   end
@@ -52,6 +82,8 @@ function command_handlers.quit(client, _, ...)
   vim.wait(1000, function() client:disconnect() end)
 end
 
+-- Calls a handler specific for the command if exists otherwise
+-- Calls the default handler
 function protocol.cmd_execute(client, cmd, ...)
   if protocol.aliases[cmd] then cmd = protocol.aliases[cmd] end
   if command_handlers[cmd] then
@@ -68,7 +100,8 @@ end
 
   CAP REQ :sasl\r\n
 --]]
-
+-- Parses a message and returns a dict with relavent data extracted
+-- from message
 function protocol.parse_msg(msg)
   local result = {}
   result.args = {}
@@ -101,7 +134,7 @@ function protocol.parse_msg(msg)
     index = msg:find(' ', index) + 1 -- add one to skip space
   end
   local last_arg_start = msg:find(':', index)
-  if not last_arg_start then 
+  if not last_arg_start then
     result.args = vim.split(msg:sub(index, #msg), ' ')
   else
     if last_arg_start ~= index then
@@ -111,7 +144,7 @@ function protocol.parse_msg(msg)
       index = last_arg_start + 1
     else
       -- plus 1 to skip ':'
-      index = index + 1 
+      index = index + 1
     end
     table.insert(result.args, msg:sub(index, #msg))
   end

@@ -1,3 +1,12 @@
+--[[
+
+  Mainly handles replies from server
+  If a handler named command exists in handlers
+  table it'll be called .
+
+  And default_handler will be called for all cases
+
+--]]
 local handlers = {}
 
 local protocol = require'nirc.irc.protocol'
@@ -30,13 +39,15 @@ end
 handlers['433'] = function(client, _)
   client.config.nick = '_'..client.config.nick
   client:send_cmd("nick", client.config.nick)
-  client:send_cmd('user', client.config.username, client.config.username)
 end
 
 -- Makes initial contact with the server
 local function handshake(client, responce)
   -- if responce.cmd == 'NOTICE' and responce.args[#responce.args]:find('No Ident response') then
   if responce.cmd == 'NOTICE' and responce.args[#responce.args]:find('Looking up your hostname') then
+    if client.config.pass then
+      client:send_cmd('pass', client.config.pass)
+    end
     client:send_cmd('nick', client.config.nick)
     client:send_cmd('user', client.config.username, client.config.username)
     return false
@@ -47,7 +58,9 @@ local function handshake(client, responce)
   end
   --username already in use
   if responce.cmd == '433' then
-    handlers[responce.cmd](client, _)
+    client.config.nick = '_'..client.config.nick
+    client:send_cmd("nick", client.config.nick)
+    client:send_cmd('user', client.config.username, client.config.username)
     return false
   end
   -- Ping from server

@@ -53,6 +53,18 @@ used by the UI. Once there is a UI you won't need these :)
 - nick
 - quit
 - raw
+- oper
+- motd
+- version
+- admin
+- connect
+- time
+- stats
+- info
+- mode
+- notice
+- userhost
+- kill
 
 ### TODO
 - [ ] Quite litraly Alot.
