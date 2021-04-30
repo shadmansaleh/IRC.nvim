@@ -27,7 +27,7 @@ end
 
 -- Gets called for all events
 function handlers.default_handler(client, responce)
-  show(client.buffer, string.format('%s(%s) > %s', responce.nick or responce.addr or responce.source, responce.cmd, responce.args[#responce.args]))
+  show(client.buffer, string.format('%s(%s) > %s', responce.nick or responce.addr or responce.source, responce.cmd, table.concat(responce.args, ' ')))
 end
 
 -- Handle pings
@@ -41,30 +41,33 @@ handlers['433'] = function(client, _)
   client:send_cmd("nick", client.config.nick)
 end
 
+function handlers.ERROR(client, responce)
+  if responce.args[#responce.args]:upper():find('QUIT') then
+    client:disconnect()
+  end
+end
+
 -- Makes initial contact with the server
+function handlers.post_connect(client)
+  if client.config.pass then
+    client:send_cmd('pass', client.config.pass)
+  end
+  client:send_cmd('nick', client.config.nick)
+  client:send_cmd('user', client.config.username, client.config.username)
+end
+
 local function handshake(client, responce)
-  -- if responce.cmd == 'NOTICE' and responce.args[#responce.args]:find('No Ident response') then
-  if responce.cmd == 'NOTICE' and responce.args[#responce.args]:find('Looking up your hostname') then
-    if client.config.pass then
-      client:send_cmd('pass', client.config.pass)
-    end
-    client:send_cmd('nick', client.config.nick)
-    client:send_cmd('user', client.config.username, client.config.username)
-    return false
-  end
   -- we are accepted
-  if responce.cmd == '376' then
+  if responce.cmd == '001' then
     return true
-  end
   --username already in use
-  if responce.cmd == '433' then
+  elseif responce.cmd == '433' then
     client.config.nick = '_'..client.config.nick
     client:send_cmd("nick", client.config.nick)
     client:send_cmd('user', client.config.username, client.config.username)
     return false
-  end
-  -- Ping from server
-  if responce.cmd == 'PING' then
+  -- Ping from server or anything else
+  elseif handlers[responce.cmd] then
     handlers[responce.cmd](client, responce)
     return false
   end

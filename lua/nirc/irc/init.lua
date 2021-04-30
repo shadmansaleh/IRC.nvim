@@ -44,6 +44,7 @@ function client:connect()
     self.conc:read_start(vim.schedule_wrap(function(error, chunk)
       handlers.responce_handler(self, error, chunk)
     end))
+    vim.schedule_wrap(function() handlers.post_connect(self) end)()
   end)
 end
 
@@ -72,7 +73,6 @@ function client:prompt(str)
 end
 
 function client:disconnect()
-  if self.conc.is_closed() then return end
   self.conc:read_stop()
   if not self.conc:is_closing() then
     self.conc:close()

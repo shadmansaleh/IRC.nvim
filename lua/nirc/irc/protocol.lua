@@ -79,7 +79,6 @@ end
 -- Send quit
 function command_handlers.quit(client, _, ...)
   client:send_raw(protocol.commands_strs.quit[1], ...)
-  vim.wait(1000, function() client:disconnect() end)
 end
 
 -- Calls a handler specific for the command if exists otherwise
