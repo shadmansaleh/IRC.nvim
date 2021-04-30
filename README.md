@@ -7,7 +7,7 @@ Currently it's at very early stage of devlopment . And not really usable.
 You create client with
 
 ```lua
-local client = require'nirc.irc':new(config)
+  require'nirc':new(config)
 ```
 
 Where default config are
@@ -20,31 +20,25 @@ local default_config = {
 }
 ```
 
-Then 
-```lua
-client:connect()
-```
-to connect to the server
+Then you'll be at a screen with two windows the one above is preview window
+and the one below is prompt window you'll have to type commands in the
+prompt window
 
-
-You can send commands to the server with `client:prompt()`
+For now you need to type dirrect commands without much assistance
 Like to messege shadman you'd run 
-```lua
-  client:prompt('/msg shadman hello shadman!')
+```
+  /msg shadman hello shadman!
 ```
 
 To join neovim's chennel 
-```lua
-  client:prompt('/join #neovim')
+```
+  /join #neovim
 ```
 
 To send message to a chennel
-```lua
-  client:prompt('/msg #neovim hello everybody')
 ```
-
-Don't worry these are just backend apis that will be 
-used by the UI. Once there is a UI you won't need these :)
+  /msg #neovim hello everybody
+```
 
 ### Supported commands:
 - join aliased j

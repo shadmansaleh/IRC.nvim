@@ -32,8 +32,7 @@ function client:connect()
   local conf = self.config
   conf.handshake_done = false
   if not self.buffer then
-    vim.cmd('new')
-    self.buffer = vim.fn.bufnr()
+    self.buffer = require'nirc.display'.data.preview_win.buf
   end
   local server_data = uv.getaddrinfo(conf.server, nil, {family = 'inet', socktype = 'stream'})
   if server_data then conf.server_ip = server_data[1].addr

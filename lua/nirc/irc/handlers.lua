@@ -27,7 +27,10 @@ end
 
 -- Gets called for all events
 function handlers.default_handler(client, responce)
-  show(client.buffer, string.format('%s(%s) > %s', responce.nick or responce.addr or responce.source, responce.cmd, table.concat(responce.args, ' ')))
+  show(client.buffer, string.format('%s > %s', responce.nick or responce.addr or responce.source, table.concat(responce.args, ' ')))
+  vim.api.nvim_set_current_win(require'nirc.display'.data.preview_win.win)
+  vim.cmd[[silent! normal! G]]
+  vim.api.nvim_set_current_win(require'nirc.display'.data.prompt_win.win)
 end
 
 -- Handle pings
