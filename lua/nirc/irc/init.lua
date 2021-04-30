@@ -22,6 +22,10 @@ end
 function client:connect()
   local conf = self.config
   conf.handshake_done = false
+  if not self.buffer then
+    vim.cmd('new')
+    self.buffer = vim.fn.bufnr()
+  end
   local server_data = uv.getaddrinfo(conf.server, nil, {family = 'inet', socktype = 'stream'})
   if server_data then conf.server_ip = server_data[1].addr
   else error("Unable to locate " .. conf.server) end
@@ -35,22 +39,32 @@ function client:connect()
 end
 
 function client:send_cmd(cmd, ...)
-  local msg = protocol.cmd_format(cmd, ...)
-  self.conc:write(msg..'\r\n')
+  local ok, msg = protocol.cmd_execute(self, cmd, ...)
+  if not ok then print(msg) end
 end
 
 function client:send_raw(...)
   local msg = string.format(...)
-  self.conc:write(msg..'\r\n')
+  if msg then
+    self.conc:write(msg..'\r\n')
+    local parsed_msg = protocol.parse_msg(msg)
+    parsed_msg.nick = self.config.nick
+    handlers.default_handler(self, parsed_msg)
+  end
 end
 
 function client:prompt(str)
-  local snip = vim.split(str, ' ')
-  if snip[1]:sub(1,1) == '/' then
-    local cmd = snip[1]:sub(2)
-    table.remove(snip, 1)
-    self:send_cmd(cmd, unpack(snip))
+  local args = vim.split(str, ' ')
+  if args[1]:sub(1,1) == '/' then
+    local cmd = args[1]:sub(2)
+    table.remove(args, 1)
+    self:send_cmd(cmd, unpack(args))
   end
+end
+
+function client:disconnect()
+  self.conc:read_stop()
+  self.conc:close()
 end
 
 return client

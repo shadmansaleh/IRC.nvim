@@ -1,7 +1,7 @@
 local protocol = {}
 
 -- Supported comands
-protocol.commands = {
+protocol.commands_strs = {
   join = {'JOIN %s', args = 1},
   part = {'PART %s',  args = 1},
   msg  = {'PRIVMSG %s %s', args = 2},
@@ -17,20 +17,48 @@ protocol.aliases = {
   m = 'msg'
 }
 
-function protocol.cmd_format(...)
+local command_handlers = {}
+
+function command_handlers.default(client, cmd, ...)
   local args = {...}
-  local cmd = args[1]
-  table.remove(args, 1)
-  if protocol.aliases.cmd then cmd = protocol.aliases[cmd] end
-  if protocol.commands[cmd] then
+  if protocol.commands_strs[cmd] then
     local msg = {}
-    for i=protocol.commands[cmd].args, #args do
+    for i=protocol.commands_strs[cmd].args, #args do
       table.insert(msg, args[i])
     end
-    table.insert(args, protocol.commands[cmd].args, ':'..table.concat(msg, ' '))
-    return string.format(protocol.commands[cmd][1], unpack(args))
+    table.insert(args, protocol.commands_strs[cmd].args, ':'..table.concat(msg, ' '))
+    client:send_raw(protocol.commands_strs[cmd][1], unpack(args))
+    return true, 'command sent'
   end
-  return nil, 'Unsupported command'
+  return false, 'Unsupported command'
+end
+
+-- raw commands
+function command_handlers.raw(client, _, ...)
+  client:send_raw(...)
+  return true, 'Raw sent'
+end
+
+-- change nick name
+function command_handlers.nick(client, _, ...)
+  client.config.nick = select(1, ...)
+  client:send_raw(protocol.commands_strs.nick[1], ...)
+  return true, 'Command sent'
+end
+
+-- Send quit
+function command_handlers.quit(client, _, ...)
+  client:send_raw(protocol.commands_strs.quit[1], ...)
+  client:disconnect()
+end
+
+function protocol.cmd_execute(client, cmd, ...)
+  if protocol.aliases[cmd] then cmd = protocol.aliases[cmd] end
+  if command_handlers[cmd] then
+    return command_handlers[cmd](client, cmd, ...)
+  else
+    return command_handlers.default(client, cmd, ...)
+  end
 end
 
 --[[ Valid massege example
@@ -69,7 +97,9 @@ function protocol.parse_msg(msg)
     result.source = source
   end
   result.cmd = msg:match('%S+', index)
-  index = msg:find(' ', index) + 1 -- add one to skip space
+  if msg:find(' ', index) then
+    index = msg:find(' ', index) + 1 -- add one to skip space
+  end
   local last_arg_start = msg:find(':', index)
   if not last_arg_start then 
     result.args = vim.split(msg:sub(index, #msg), ' ')

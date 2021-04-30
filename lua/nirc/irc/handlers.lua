@@ -4,17 +4,12 @@ local protocol = require'nirc.irc.protocol'
 
 local buffer_text = {}
 
-vim.cmd('new')
-local buf_nr = vim.fn.bufnr()
-local pr = print
-
 -- Temporary solution for testing
-local function print(...)
+local function show(buf_nr, ...)
   for _, arg in pairs({...}) do
     if type(arg) == 'string' then
       for line in vim.gsplit(arg,'\n') do
         table.insert(buffer_text, line)
-        pr(line)
       end
     end
   end
@@ -22,13 +17,26 @@ local function print(...)
 end
 
 -- Gets called for all events
-function handlers.default_handler(_, responce)
-  print(string.format('%s(%s) > %s', responce.nick or responce.addr or responce.source, responce.cmd, responce.args[#responce.args]))
+function handlers.default_handler(client, responce)
+  show(client.buffer, string.format('%s(%s) > %s', responce.nick or responce.addr or responce.source, responce.cmd, responce.args[#responce.args]))
+end
+
+-- Handle pings
+function handlers.PING(client, responce)
+  client:send_raw('PONG :%s', responce.args[#responce.args])
+end
+
+-- Handle Nick name already in use
+handlers['433'] = function(client, _)
+  client.config.nick = '_'..client.config.nick
+  client:send_cmd("nick", client.config.nick)
+  client:send_cmd('user', client.config.username, client.config.username)
 end
 
 -- Makes initial contact with the server
 local function handshake(client, responce)
-  if responce.cmd == 'NOTICE' and responce.args[#responce.args]:find('No Ident response') then
+  -- if responce.cmd == 'NOTICE' and responce.args[#responce.args]:find('No Ident response') then
+  if responce.cmd == 'NOTICE' and responce.args[#responce.args]:find('Looking up your hostname') then
     client:send_cmd('nick', client.config.nick)
     client:send_cmd('user', client.config.username, client.config.username)
     return false
@@ -39,14 +47,12 @@ local function handshake(client, responce)
   end
   --username already in use
   if responce.cmd == '433' then
-    client.config.nick = '_'..client.config.nick
-    client:send_cmd("nick", client.config.nick)
-    client:send_cmd('user', client.config.username, client.config.username)
+    handlers[responce.cmd](client, _)
     return false
   end
   -- Ping from server
   if responce.cmd == 'PING' then
-    client:send_raw('PONG :%s', responce.args[#responce.args])
+    handlers[responce.cmd](client, responce)
     return false
   end
 end
