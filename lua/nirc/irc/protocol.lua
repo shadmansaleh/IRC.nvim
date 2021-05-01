@@ -19,25 +19,40 @@ local protocol = {}
 -- Command patterns used by default handler to handle commands
 protocol.commands_strs = {
   -- name = { format, arg_count }
+  admin = {'ADMIN %s', 1},
+  away = {'AWAY %s', 1},
+  connect = {'CONNECT %s %s %s', 3},
+  info = {'INFO %s', 1},
+  invite = {'INVITE %s %s', 2},
+  ison = {'ISON %s', 1},
   join = {'JOIN %s %s', 2},
-  part = {'PART %s %s',  2},
+  kick = {'KICK %s %s %s', 3},
+  kill = {'KILL %s %s', 2},
+  links = {'LINKS %s %s', 2},
+  list = {'LIST %s', 1},
+  mode = {'MODE %s %s %s', 3},
+  motd = {'MOTD %s', 1},
   msg  = {'PRIVMSG %s %s', 2},
+  names = {'NAMES %s', 1},
   nick = {'NICK %s', 1},
-  user = {'USER %s 0 * :%s', 2},
+  notice = {'NOTICE %s %s', 2},
+  oper = {'OPER %s %s', 2},
+  part = {'PART %s %s',  2},
   pass = {'PASS %s', 1},
   quit = {'QUIT', 1},
-  oper = {'OPER %s %s', 2},
-  motd = {'MOTD %s', 1},
-  version = {'VERSION %s', 1},
-  admin = {'ADMIN %s', 1},
-  connect = {'CONNECT %s %s %s', 3},
-  time = {'TIME %s', 1},
+  restart = {'RESTART', 1},
   stats = {'STATS %s %s', 2},
-  info = {'INFO %s', 1},
-  mode = {'MODE %s %s %s', 3},
-  notice = {'NOTICE %s %s', 2},
+  summon = {'SUMMON %s %s', 2},
+  time = {'TIME %s', 1},
+  trace = {'TRACE %s', 1},
   userhost = {'USERHOST %s %s %s %s %s', 5},
-  kill = {'KILL %s %s', 2},
+  users = {'USERS %s', 1},
+  user = {'USER %s 0 * :%s', 2},
+  version = {'VERSION %s', 1},
+  wallops = {'WALLOPS, %s', 1},
+  whois = {'WHOIS %s %s', 2},
+  whowas = {'WHOWAS %s %s %s',3},
+  who = {'WHO %s %s', 2},
 }
 
 -- Supported alaises
@@ -71,6 +86,7 @@ end
 
 -- change nick name
 function command_handlers.nick(client, _, ...)
+  client.config.old_nick = client.config.nick
   client.config.nick = select(1, ...)
   client:send_raw(protocol.commands_strs.nick[1], ...)
   return true, 'Command sent'

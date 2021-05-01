@@ -17,6 +17,7 @@ local default_config = {
   port = 6667,
   nick = os.getenv('USER') or 'nirc_user',
   username = os.getenv('USER') or 'nirc_user',
+  password = nil,
 }
 ```
 
@@ -41,24 +42,39 @@ To send message to a chennel
 ```
 
 ### Supported commands:
+- admin
+- away
+- connect
+- info
+- invite
+- ison
 - join aliased j
-- part aliased p
+- kick
+- kill
+- links
+- list
+- mode
+- motd
 - msg  aliased m
+- names
 - nick
+- notice
+- oper
+- part aliased p
 - quit
 - raw
-- oper
-- motd
-- version
-- admin
-- connect
-- time
+- restart
 - stats
-- info
-- mode
-- notice
+- summon
+- time
+- trace
 - userhost
-- kill
+- users
+- version
+- wallops
+- who
+- whois
+- whowas
 
 ### TODO
 - [ ] Quite litraly Alot.
