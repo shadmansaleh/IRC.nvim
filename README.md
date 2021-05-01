@@ -7,7 +7,7 @@ Currently it's at very early stage of devlopment . And not really usable.
 You create client with
 
 ```lua
-  require'nirc':new(config)
+  require'nirc'.setup(config)
 ```
 
 Where default config are
@@ -42,6 +42,9 @@ To send message to a chennel
 ```
 
 ### Supported commands:
+<details>
+<summary>Commands</summary>
+
 - admin
 - away
 - connect
@@ -83,10 +86,12 @@ To send message to a chennel
 - whois
 - whowas
 
+</details>
+
 ### TODO
-- [ ] Quite litraly Alot.
-- [ ] Proper implementation of the client with as many commands supported as posible.
-- [ ] A prooer UI to make it usable
+- [ ] Quite literally alot.
+- [ ] Proper implementation of the client with as many commands supported as possible.
+- [ ] A proper UI to make it usable
 
 ### what's not in the list
 For now SSL support is out of scope . I don't want to write an entire ssl library.
