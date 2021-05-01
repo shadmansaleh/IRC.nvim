@@ -45,6 +45,7 @@ To send message to a chennel
 - admin
 - away
 - connect
+- die
 - info
 - invite
 - ison
@@ -53,6 +54,7 @@ To send message to a chennel
 - kill
 - links
 - list
+- lusers
 - mode
 - motd
 - msg  aliased m
@@ -63,10 +65,15 @@ To send message to a chennel
 - part aliased p
 - quit
 - raw
+- rehash
 - restart
+- servlist
 - stats
+- squery
+- squit
 - summon
 - time
+- topic
 - trace
 - userhost
 - users
