@@ -109,14 +109,16 @@ local buffer_text = {}
 
 -- Temporary solution for testing
 local function show(buf_nr, ...)
+  if not vim.api.nvim_buf_is_valid(buf_nr) then return end
+  local text = {}
   for _, arg in pairs({...}) do
     if type(arg) == 'string' then
       for line in vim.gsplit(arg,'\n') do
-        table.insert(buffer_text, line)
+        table.insert(text, line)
       end
     end
   end
-  vim.api.nvim_buf_set_lines(buf_nr, 0, -1, false, buffer_text)
+  vim.api.nvim_buf_set_lines(buf_nr, -1, -1, false, text)
 end
 
 -- var to store partial commands
@@ -149,10 +151,12 @@ end
 
 -- Gets called for all events
 function handlers.default_handler(client, responce)
-  show(client.buffer, string.format('%s > %s', responce.nick or responce.addr or responce.source, table.concat(responce.args, ' ')))
-  vim.api.nvim_set_current_win(require'nirc.display'.data.preview_win.win)
-  vim.cmd[[silent! normal! G]]
-  vim.api.nvim_set_current_win(require'nirc.display'.data.prompt_win.win)
+  show(client.buffer, string.format(' %s | <( %s )> | %s', os.date('%H:%M'), responce.nick or responce.addr or responce.source, table.concat(responce.args, ' ')))
+  if require'nirc.display'.data.preview_win then
+    vim.api.nvim_set_current_win(require'nirc.display'.data.preview_win.win)
+    vim.cmd[[silent! normal! G]]
+    vim.api.nvim_set_current_win(require'nirc.display'.data.prompt_win.win)
+  end
 end
 
 -- Handle pings
@@ -177,6 +181,7 @@ end
 function handlers.ERROR(client, responce)
   if responce.args[#responce.args]:upper():find('QUIT') then
     client:disconnect()
+    require'nirc.display'.close_view()
   end
 end
 

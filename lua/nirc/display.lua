@@ -29,10 +29,14 @@ function display.open_view()
   silent! setlocal breakindentopt=shift:31
   silent! setlocal breakat&
   silent! setlocal buftype=nofile
+  " silent! setlocal nomodifiable
   silent! call nvim_buf_set_name(0, 'IRC_preview')
-  silent! 5split
+  silent! nnoremap <silent><buffer> i <cmd>lua require("nirc.keymaps").goto_prompt()<CR>
+  silent! nnoremap <silent><buffer> a <cmd>lua require("nirc.keymaps").goto_prompt()<CR>
+  silent! nnoremap <silent><buffer> I <cmd>lua require("nirc.keymaps").goto_prompt()<CR>
+  silent! nnoremap <silent><buffer> A <cmd>lua require("nirc.keymaps").goto_prompt()<CR>
+  silent! 1split
   silent! enew
-  " silent! setlocal backspace=start,indent
   silent! setlocal nonumber
   silent! setlocal buftype=nofile
   silent! setlocal bufhidden=hide
@@ -56,6 +60,15 @@ function display.open_view()
   vim.api.nvim_set_current_win(display.data.prompt_win.win)
   vim.cmd('silent! startinsert')
   return true
+end
+
+function display.close_view()
+  vim.api.nvim_buf_delete(display.data.preview_win.buf, {force = true})
+  vim.api.nvim_buf_delete(display.data.prompt_win.buf, {force = true})
+  vim.cmd('silent! tabclose')
+  display.data.preview_win = nil
+  display.data.prompt_win = nil
+  display.data.tab_no = nil
 end
 
 return display
