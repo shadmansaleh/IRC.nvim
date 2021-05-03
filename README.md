@@ -78,12 +78,12 @@ hello everybody
 If you have neovim's chennel opened in preview window
 
 ### Available vim commands
-- NIRCConnect server-name (Connect to server)
-- NIRCChannelNext (Go to next channel)
-- NIRCChannelPrev (Go to previous channel)
-- NIRCChannelSwitch channel-name (Go to specific channel)
+- `NIRCConnect` server-name (Connect to server)
+- `NIRCChannelNext` (Go to next channel)
+- `NIRCChannelPrev` (Go to previous channel)
+- `NIRCChannelSwitch` channel-name (Go to specific channel)
 
-### Supported commands:
+### Supported IRC commands:
 <details>
 <summary>Commands</summary>
 
