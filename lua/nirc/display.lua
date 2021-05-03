@@ -75,6 +75,9 @@ function display.close_view()
   nirc_data.display.preview_win = nil
   nirc_data.display.prompt_win = nil
   nirc_data.display.tab_no = nil
+  nirc_data.channels.list = nil
+  nirc_data.channels.msgs = nil
+  nirc_data.active_channel = nil
 end
 
 function display.show(msg)

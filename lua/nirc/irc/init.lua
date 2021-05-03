@@ -68,10 +68,13 @@ function client:prompt(str)
 end
 
 function client:disconnect()
+  local nirc_data = require'nirc.data'
   self.conc:read_stop()
   if not self.conc:is_closing() then
     self.conc:close()
   end
+  nirc_data.clients[nirc_data.active_client] = nil
+  nirc_data.active_client = nil
 end
 
 return client
