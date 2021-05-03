@@ -9,7 +9,8 @@ function keymaps.send_msg()
   line = utils.remove_prompt(line, prompt)
   nirc_data.clients[nirc_data.active_client]:prompt(line)
   vim.api.nvim_del_current_line()
-  vim.api.nvim_buf_set_lines(nirc_data.display.prompt_win.buf, 1, 1, false, {prompt})
+  vim.api.nvim_buf_set_lines(nirc_data.display.prompt_win.buf, 0, 0, false, {prompt})
+  vim.api.nvim_win_set_cursor(0, {1, #prompt - 1})
 end
 
 function keymaps.goto_prompt()

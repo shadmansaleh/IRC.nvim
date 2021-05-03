@@ -57,7 +57,10 @@ function display.open_view()
     win = vim.api.nvim_get_current_win(),
   }
   vim.api.nvim_set_current_win(nirc_data.display.prompt_win.win)
+  local prompt = utils.get_prompt()
+  vim.api.nvim_buf_set_lines(nirc_data.display.prompt_win.buf, 0, 0, false, {prompt})
   vim.cmd('silent! startinsert')
+  vim.api.nvim_win_set_cursor(0, {1, #prompt - 1})
   return true
 end
 
@@ -65,7 +68,10 @@ function display.close_view()
   local nirc_data = require'nirc.data'
   vim.api.nvim_buf_delete(nirc_data.display.preview_win.buf, {force = true})
   vim.api.nvim_buf_delete(nirc_data.display.prompt_win.buf, {force = true})
-  vim.cmd('silent! tabclose')
+  vim.cmd([[
+  silent! tabclose
+  silent! stopinsert
+  ]])
   nirc_data.display.preview_win = nil
   nirc_data.display.prompt_win = nil
   nirc_data.display.tab_no = nil

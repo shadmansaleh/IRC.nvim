@@ -3,7 +3,7 @@ local utils = {}
 
 function utils.get_prompt()
   local nirc_data = require'nirc.data'
-  return string.format('( %s ) > ', nirc_data.clients[nirc_data.active_client].config.nick)
+  return string.format('<%s> ', nirc_data.clients[nirc_data.active_client].config.nick)
 end
 
 function utils.remove_prompt(line, prompt)
