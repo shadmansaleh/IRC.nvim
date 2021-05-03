@@ -34,14 +34,13 @@ protocol.commands_strs = {
   lusers = {'LUSERS %s %s', 2},
   mode = {'MODE %s %s %s', 3},
   motd = {'MOTD %s', 1},
-  -- msg  = {'PRIVMSG %s %s', 2},
   names = {'NAMES %s', 1},
   nick = {'NICK %s', 1},
   notice = {'NOTICE %s %s', 2},
   oper = {'OPER %s %s', 2},
   part = {'PART %s %s',  2},
   pass = {'PASS %s', 1},
-  quit = {'QUIT', 1},
+  quit = {'QUIT %s', 1},
   rehash = {'REHASH', 0},
   restart = {'RESTART', 1},
   servlist = {'SERVLIST %s %s', 1},
@@ -86,7 +85,6 @@ function command_handlers.default(client, cmd, ...)
       end
     end
     client:send_raw(protocol.commands_strs[cmd][1], unpack(args))
-    P({protocol.commands_strs[cmd][1], unpack(args)})
     return true, 'command sent'
   end
   return false, 'Unsupported command'
@@ -94,7 +92,7 @@ end
 
 -- raw commands
 function command_handlers.raw(client, _, ...)
-  client:send_raw(table.concat({...}))
+  client:send_raw(table.concat({...}, ' '))
   return true, 'Raw sent'
 end
 
@@ -106,11 +104,6 @@ function command_handlers.nick(client, _, ...)
   return true, 'Command sent'
 end
 
--- Send quit
-function command_handlers.quit(client, _, ...)
-  client:send_raw(protocol.commands_strs.quit[1], ...)
-end
-
 -- Handle PRIVNSG
 function command_handlers.msg(client, _, ...)
   local args = {...}
@@ -119,7 +112,15 @@ function command_handlers.msg(client, _, ...)
     table.insert(msg, args[i])
   end
   table.insert(args, 2, ':'..table.concat(msg, ' '))
-  client:send_raw('PRIVMSG %s %s', unpack(args))
+  local message = vim.trim(string.format('PRIVMSG %s %s', unpack(args)))
+  client:send_raw(message)
+  local parsed_msg = {
+    cmd = 'PRIVMSG',
+    nick = client.config.nick,
+    args = {args[1], args[2]:sub(2)},
+  }
+  parsed_msg.nick = client.config.nick
+  require'nirc.display'.show(parsed_msg)
   return true, 'command sent'
 end
 -- Calls a handler specific for the command if exists otherwise

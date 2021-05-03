@@ -31,12 +31,9 @@ end
 function client:connect()
   local conf = self.config
   conf.handshake_done = false
-  if not self.buffer then
-    self.buffer = require'nirc.display'.data.preview_win.buf
-  end
   local server_data = uv.getaddrinfo(conf.server, nil, {family = 'inet', socktype = 'stream'})
-  if server_data then conf.server_ip = server_data[1].addr
-  else error("Unable to locate " .. conf.server) end
+  assert(server_data, "Unable to locate " .. conf.server)
+  conf.server_ip = server_data[1].addr
   self.conc = uv.new_tcp()
   uv.tcp_connect(self.conc, conf.server_ip, conf.port, function(err)
     assert(not err, err)
@@ -54,21 +51,20 @@ end
 
 function client:send_raw(...)
   local msg = vim.trim(string.format(...))
-  if msg then
-    self.conc:write(msg..'\r\n')
-    local parsed_msg = protocol.parse_msg(msg)
-    parsed_msg.nick = self.config.nick
-    handlers.default_handler(self, parsed_msg)
-  end
+  if msg then self.conc:write(msg..'\r\n') end
 end
 
 function client:prompt(str)
   local args = vim.split(str, ' ')
-  if args[1]:sub(1,1) == '/' then
-    local cmd = args[1]:sub(2)
+  local cmd = ''
+  if args[1]:byte(1) == string.byte('/') then
+    cmd = args[1]:sub(2)
     table.remove(args, 1)
-    self:send_cmd(cmd, unpack(args))
+  else
+    cmd = 'msg'
+    table.insert(args, 1, require'nirc.data'.active_channel)
   end
+  self:send_cmd(cmd, unpack(args))
 end
 
 function client:disconnect()

@@ -1,7 +1,9 @@
 local utils = {}
 
-function utils.get_prompt(client)
-  return string.format('( %s ) > ', client.config.nick)
+
+function utils.get_prompt()
+  local nirc_data = require'nirc.data'
+  return string.format('( %s ) > ', nirc_data.clients[nirc_data.active_client].config.nick)
 end
 
 function utils.remove_prompt(line, prompt)
@@ -14,4 +16,34 @@ function utils.remove_prompt(line, prompt)
   end
   return line:sub(match_until)
 end
+
+function utils.str_split_len(str, len)
+  local length = #str
+  local splited_str = {}
+  local begin = 1
+  while (begin + len) < length do
+    local word_end = begin + len
+    while word_end > begin do
+      if str:byte(word_end) == string.byte(' ') or
+        str:byte(word_end) == string.byte('\n') or
+        str:byte(word_end) == string.byte('\t') then
+        break
+      end
+      word_end = word_end - 1
+    end
+    table.insert(splited_str, str:sub(begin, (word_end ~= begin) and word_end or begin + len))
+    begin = (word_end ~= begin) and word_end + 1 or begin + len
+  end
+  table.insert(splited_str, str:sub(begin, length))
+  return splited_str
+end
+
+function utils.error_msg(msg)
+  vim.api.nvim_echo({{msg, 'ErrorMsg'}}, true, {})
+end
+
+function utils.warn_msg(msg)
+  vim.api.nvim_echo({{msg, 'WaringMsg'}}, true, {})
+end
+
 return utils

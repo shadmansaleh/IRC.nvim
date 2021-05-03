@@ -4,7 +4,7 @@
   If a handler named command exists in handlers
   table it'll be called .
 
-  And default_handler will be called for all cases
+  otherwise default_handler will be called
 
 --]]
 local handlers = {}
@@ -105,22 +105,6 @@ local numerics = {
 
 }
 
-local buffer_text = {}
-
--- Temporary solution for testing
-local function show(buf_nr, ...)
-  if not vim.api.nvim_buf_is_valid(buf_nr) then return end
-  local text = {}
-  for _, arg in pairs({...}) do
-    if type(arg) == 'string' then
-      for line in vim.gsplit(arg,'\n') do
-        table.insert(text, line)
-      end
-    end
-  end
-  vim.api.nvim_buf_set_lines(buf_nr, -1, -1, false, text)
-end
-
 -- var to store partial commands
 local chunk_buffer = ''
 
@@ -142,8 +126,9 @@ function handlers.responce_handler(client, err, chunk)
         end
         if handlers[cmd] then
           handlers[cmd](client, responce)
+        else
+          handlers.default_handler(client, responce)
         end
-        handlers.default_handler(client, responce)
       end
     end
   end
@@ -151,12 +136,7 @@ end
 
 -- Gets called for all events
 function handlers.default_handler(client, responce)
-  show(client.buffer, string.format(' %s | <( %s )> | %s', os.date('%H:%M'), responce.nick or responce.addr or responce.source, table.concat(responce.args, ' ')))
-  if require'nirc.display'.data.preview_win then
-    vim.api.nvim_set_current_win(require'nirc.display'.data.preview_win.win)
-    vim.cmd[[silent! normal! G]]
-    vim.api.nvim_set_current_win(require'nirc.display'.data.prompt_win.win)
-  end
+  require'nirc.display'.show(responce)
 end
 
 -- Handle pings
@@ -187,8 +167,8 @@ end
 
 -- Makes initial contact with the server
 function handlers.post_connect(client)
-  if client.config.pass then
-    client:send_cmd('pass', client.config.pass)
+  if client.config.password then
+    client:send_cmd('pass', client.config.password)
   end
   client:send_cmd('nick', client.config.nick)
   client:send_cmd('user', client.config.username, client.config.username)

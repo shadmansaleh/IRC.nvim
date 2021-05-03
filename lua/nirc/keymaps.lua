@@ -1,23 +1,20 @@
 local keymaps = {}
 
 local utils = require'nirc.utils'
-local display = require'nirc.display'
-
-function keymaps.init(client)
-  keymaps.client = client
-end
 
 function keymaps.send_msg()
+  local nirc_data = require'nirc.data'
   local line = vim.api.nvim_get_current_line()
-  local prompt = utils.get_prompt(keymaps.client)
+  local prompt = utils.get_prompt()
   line = utils.remove_prompt(line, prompt)
-  keymaps.client:prompt(line)
+  nirc_data.clients[nirc_data.active_client]:prompt(line)
   vim.api.nvim_del_current_line()
-  vim.api.nvim_buf_set_lines(display.data.prompt_win.buf, 1, 1, false, {prompt})
+  vim.api.nvim_buf_set_lines(nirc_data.display.prompt_win.buf, 1, 1, false, {prompt})
 end
 
 function keymaps.goto_prompt()
-  vim.api.nvim_set_current_win(display.data.prompt_win.win)
+  local nirc_data = require'nirc.data'
+  vim.api.nvim_set_current_win(nirc_data.display.prompt_win.win)
   vim.cmd('silent! startinsert')
 end
 
