@@ -45,6 +45,8 @@ function nirc.setup(conf)
     autocmd FileType nirc_preview nested autocmd NIRC BufEnter <buffer> setlocal statusline=%!v:lua.require'nirc.utils'.statusline()
     autocmd FileType nirc_preview nested autocmd NIRC BufLeave <buffer> setlocal statusline=%!v:lua.require'nirc.utils'.statusline()
     augroup END
+    nnoremap <Plug>NIRC_goto_prompt <cmd>lua require("nirc.keymaps").goto_prompt()<CR>
+    inoremap <Plug>NIRC_send_msg <cmd>lua require("nirc.keymaps").send_msg()<CR>
   ]])
 end
 

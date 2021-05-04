@@ -31,10 +31,10 @@ function display.open_view()
   silent! setlocal breakat&
   silent! setlocal buftype=nofile
   silent! call nvim_buf_set_name(0, 'IRC_preview')
-  silent! nnoremap <silent><buffer> i <cmd>lua require("nirc.keymaps").goto_prompt()<CR>
-  silent! nnoremap <silent><buffer> a <cmd>lua require("nirc.keymaps").goto_prompt()<CR>
-  silent! nnoremap <silent><buffer> I <cmd>lua require("nirc.keymaps").goto_prompt()<CR>
-  silent! nnoremap <silent><buffer> A <cmd>lua require("nirc.keymaps").goto_prompt()<CR>
+  silent! nmap <silent><buffer> i <Plug>NIRC_goto_prompt
+  silent! nmap <silent><buffer> a <Plug>NIRC_goto_prompt
+  silent! nmap <silent><buffer> I <Plug>NIRC_goto_prompt
+  silent! nmap <silent><buffer> A <Plug>NIRC_goto_prompt
   silent! 1split
   silent! enew
   silent! setlocal nonumber
@@ -44,7 +44,7 @@ function display.open_view()
   silent! setlocal virtualedit=onemore
   silent! setlocal filetype=nirc_prompt
   silent! call nvim_buf_set_name(0, 'IRC_prompt')
-  silent! inoremap <silent><buffer> <CR> <cmd>lua require("nirc.keymaps").send_msg()<CR>
+  silent! imap <silent><buffer> <CR> <Plug>NIRC_send_msg
   ]], false)
   nirc_data.display = {
     tab_no = vim.api.nvim_get_current_tabpage(),
