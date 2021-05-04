@@ -25,7 +25,7 @@ function display.open_view()
   silent! setlocal nonumber
   silent! setlocal norelativenumber
   silent! setlocal autoread
-  silent! setlocal syn=irc
+  silent! setlocal syn=nirc_preview
   silent! setlocal linebreak
   silent! setlocal breakat&
   silent! setlocal buftype=nofile
