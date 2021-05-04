@@ -25,6 +25,7 @@ function display.open_view()
   silent! setlocal nonumber
   silent! setlocal norelativenumber
   silent! setlocal autoread
+  silent! setlocal filetype=nirc_preview
   silent! setlocal syn=nirc_preview
   silent! setlocal linebreak
   silent! setlocal breakat&
@@ -41,6 +42,7 @@ function display.open_view()
   silent! setlocal bufhidden=hide
   silent! setlocal norelativenumber
   silent! setlocal virtualedit=onemore
+  silent! setlocal filetype=nirc_prompt
   silent! call nvim_buf_set_name(0, 'IRC_prompt')
   silent! inoremap <silent><buffer> <CR> <cmd>lua require("nirc.keymaps").send_msg()<CR>
   ]], false)

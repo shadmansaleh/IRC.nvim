@@ -40,6 +40,11 @@ function nirc.setup(conf)
     command! NIRCChannelPrev lua require('nirc.display').prev_channel()
     command! -nargs=1 -complete=customlist,v:lua.require'nirc.display'.channels NIRCChannelSwitch lua require('nirc.display').switch_channel(<q-args>)
     command! -nargs=1 NIRCConnect lua require('nirc').connect(<q-args>)
+    augroup NIRC
+    autocmd!
+    autocmd FileType nirc_preview nested autocmd NIRC BufEnter <buffer> setlocal statusline=%!v:lua.require'nirc.utils'.statusline()
+    autocmd FileType nirc_preview nested autocmd NIRC BufLeave <buffer> setlocal statusline=%!v:lua.require'nirc.utils'.statusline()
+    augroup END
   ]])
 end
 

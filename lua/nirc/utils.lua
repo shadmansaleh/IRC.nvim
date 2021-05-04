@@ -1,6 +1,5 @@
 local utils = {}
 
-
 function utils.get_prompt()
   local nirc_data = require'nirc.data'
   return string.format('<%s> ', nirc_data.clients[nirc_data.active_client].config.nick)
@@ -45,5 +44,23 @@ end
 function utils.warn_msg(msg)
   vim.api.nvim_echo({{msg, 'WaringMsg'}}, true, {})
 end
+
+function utils.statusline()
+  local active_hl = '%#visual#'
+  local inactive_hl = '%#StatusLine#'
+  local ok, nirc_data = pcall(require, 'nirc.data')
+  if not ok then return '' end
+  local active_channel = nirc_data.active_channel
+  local status = {}
+  for _, chan_name in pairs(nirc_data.channels.list) do
+    if chan_name == active_channel then
+      table.insert(status, active_hl .. chan_name..inactive_hl)
+    else
+      table.insert(status, chan_name)
+    end
+  end
+  return inactive_hl .. table.concat(status, ' | ')
+end
+
 
 return utils
