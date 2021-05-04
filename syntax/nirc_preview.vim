@@ -4,7 +4,7 @@ if exists("b:current_syntax")
   finish
 endif
 
-syn match NIRCTime    '^ \d\d:\d\d\s\+'    nextgroup=NIRCNick
+syn match NIRCTime    '^ \d\d:\d\d\s'    nextgroup=NIRCNick
 syn match NIRCNick    '\s\+<\S\+>\s'       nextgroup=NIRCMessage
 syn match NIRCMessage '[^┊]*$'             contains=NIRCMention
 syn match NIRCMention '\s@\S\+'            contained

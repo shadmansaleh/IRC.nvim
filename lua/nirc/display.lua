@@ -138,7 +138,7 @@ function display.format_msg(msg)
   local time = os.date('%2H:%2M')
   local name = msg.nick or msg.addr
   if #name > max_size then
-    name = string.format('<%s..>',name:sub(1, max_size - 2))
+    name = string.format('<%s.>',name:sub(1, max_size - 1))
   elseif #name < max_size then
     local size = #name
     local r_padding = math.floor((max_size - size) / 2)
@@ -153,11 +153,11 @@ function display.format_msg(msg)
     name = '<'..name..'>'
   end
   local message = msg.args[#msg.args]
-  local splited_message = utils.str_split_len(message, vim.fn.winwidth(0) - (1+5+2+1+2+2+max_size+2+2+1+2+5))
+  local splited_message = utils.str_split_len(message, vim.fn.winwidth(0) - (1+5+2+2+max_size+2+2+1+2+5))
   local formated_message = {}
-  table.insert(formated_message, string.format(' %s  %s  %s  %s  %s', time, separator, name, separator, splited_message[1]))
+  table.insert(formated_message, string.format(' %s  %s  %s  %s', time, name, separator, splited_message[1]))
   for i=2, #splited_message do
-    table.insert(formated_message, string.format(' %s  %s  %s  %s  %s', string.rep(' ', 5), separator, string.rep(' ', max_size + 2), separator, splited_message[i]))
+    table.insert(formated_message, string.format(' %s  %s  %s  %s', string.rep(' ', 5), string.rep(' ', max_size + 2), separator, splited_message[i]))
   end
   return formated_message
 end
