@@ -123,6 +123,25 @@ function command_handlers.msg(client, _, ...)
   require'nirc.display'.show(parsed_msg)
   return true, 'command sent'
 end
+
+function command_handlers.part(client, _, ...)
+  local chan_name = select(1, ...)
+  local nirc_data = require'nirc.data'
+  if chan_name == nil then chan_name = nirc_data.active_channel end
+  client:send_raw(protocol.commands_strs.part[1], chan_name, select(2, ...) or '')
+  for i=1,#nirc_data.channels.list do
+    if nirc_data.channels.list[i] == chan_name then
+      table.remove(nirc_data.channels.list, i)
+      break
+    end
+  end
+  nirc_data.channels.msgs[chan_name] = nil
+  if nirc_data.active_channel == chan_name then
+    require'nirc.display'.prev_channel()
+  end
+  return true, 'Command sent'
+end
+
 -- Calls a handler specific for the command if exists otherwise
 -- Calls the default handler
 function protocol.cmd_execute(client, cmd, ...)
@@ -133,6 +152,7 @@ function protocol.cmd_execute(client, cmd, ...)
     return command_handlers.default(client, cmd, ...)
   end
 end
+
 
 --[[ Valid massege example
   :irc.example.com CAP LS * :multi-prefix extended-join sasl\r\n
