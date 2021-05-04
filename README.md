@@ -2,8 +2,8 @@
 
 Irc client for neovim.
 
-Currently it's at very early stage of devlopment . And not really
-usable.
+Currently it's at very early stage of devlopment . It is some
+what usable.
 
 ### ScreenShot
 
