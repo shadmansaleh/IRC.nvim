@@ -7,7 +7,7 @@ usable.
 
 ### ScreenShot
 
-![Screenshot](https://user-images.githubusercontent.com/13149513/116909188-aaabeb00-ac65-11eb-82e0-8eb66772680e.png)
+![Screenshot](https://user-images.githubusercontent.com/13149513/117023116-9f66c700-ad1a-11eb-98fa-21ff31e2f850.png)
 
 ### Usage instruction
 
