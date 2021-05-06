@@ -19,33 +19,34 @@ function display.open_view()
     end
   end
   -- create layout
-  vim.api.nvim_exec([[
+  vim.cmd [[
   silent! tabnew
-  silent! setlocal splitbelow
-  silent! setlocal nonumber
-  silent! setlocal norelativenumber
-  silent! setlocal autoread
-  silent! setlocal filetype=nirc_preview
-  silent! setlocal syn=nirc_preview
-  silent! setlocal linebreak
-  silent! setlocal breakat&
-  silent! setlocal buftype=nofile
+  silent! setlocal splitbelow nonumber norelativenumber filetype=nirc_preview
+  silent! setlocal syn=nirc_preview buftype=nofile
   silent! call nvim_buf_set_name(0, 'IRC_preview')
-  silent! nmap <silent><buffer> i <Plug>NIRC_goto_prompt
-  silent! nmap <silent><buffer> a <Plug>NIRC_goto_prompt
-  silent! nmap <silent><buffer> I <Plug>NIRC_goto_prompt
-  silent! nmap <silent><buffer> A <Plug>NIRC_goto_prompt
-  silent! 1split
+  ]]
+  if nirc_data.configs.default_keymaps ~= false then
+    vim.cmd [[
+    silent! nmap <silent><buffer> i <Plug>NIRC_goto_prompt
+    silent! nmap <silent><buffer> a <Plug>NIRC_goto_prompt
+    silent! nmap <silent><buffer> I <Plug>NIRC_goto_prompt
+    silent! nmap <silent><buffer> A <Plug>NIRC_goto_prompt
+    silent! nmap <silent><buffer> o <Plug>NIRC_goto_prompt
+    silent! nmap <silent><buffer> O <Plug>NIRC_goto_prompt
+    ]]
+  end
+  vim.cmd(string.format([[
+  silent! %dsplit
   silent! enew
-  silent! setlocal nonumber
-  silent! setlocal buftype=nofile
-  silent! setlocal bufhidden=hide
-  silent! setlocal norelativenumber
-  silent! setlocal virtualedit=onemore
-  silent! setlocal filetype=nirc_prompt
+  silent! setlocal nonumber buftype=nofile bufhidden=hide norelativenumber
+  silent! setlocal virtualedit=onemore filetype=nirc_prompt
   silent! call nvim_buf_set_name(0, 'IRC_prompt')
-  silent! imap <silent><buffer> <CR> <Plug>NIRC_send_msg
-  ]], false)
+  ]], nirc_data.configs.prompt_height or 1))
+  if nirc_data.configs.default_keymaps ~= false then
+    vim.cmd [[
+    silent! imap <silent><buffer> <CR> <Plug>NIRC_send_msg
+    ]]
+  end
   nirc_data.display = {
     tab_no = vim.api.nvim_get_current_tabpage(),
     prompt_win = {
