@@ -200,3 +200,6 @@ For now SSL support is out of scope . I don't want to write an
 entire ssl library.  If you've a better idea on how to add ssl
 support please let me know :) . I want to add it but don't have
 a good enough way to do it.
+
+### Similar projects
+- [marchelzo/ircnvim](https://github.com/marchelzo/ircnvim)
