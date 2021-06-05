@@ -19,7 +19,7 @@ function client:new(config)
   if not config then config = {} end
   local new_client = {}
   local default_config = {
-    server = 'irc.freenode.net',
+    server = 'irc.libera.chat',
     port = 6667,
     nick = os.getenv('USER') or 'nirc_user',
     username = os.getenv('USER') or 'nirc_user',

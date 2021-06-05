@@ -37,7 +37,7 @@ use {'shadmansaleh/IRC.nvim',
         freenode = {
           nick = 'user',
           username = 'user',
-          server = 'irc.freenode.net',
+          server = 'irc.libera.chat',
           port = 6667,
         },
       }
