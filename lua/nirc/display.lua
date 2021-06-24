@@ -180,60 +180,54 @@ function display.format_msg(msg)
   return formated_message
 end
 
+-- Switch to channel chan_name
 function display.switch_channel(chan_name)
   local nirc_data = require'nirc.data'
-  if not nirc_data.channels.msgs[chan_name] then return end
-  nirc_data.active_channel = chan_name
-  api.nvim_buf_set_lines(nirc_data.display.preview_win.buf, 0, -1, false, nirc_data.channels.msgs[chan_name])
-  local current_wins = api.nvim_tabpage_list_wins(0)
-  for _, win_no in pairs(current_wins) do
-    if win_no == nirc_data.display.preview_win.win then
-      local cur_win = api.nvim_get_current_win()
-      api.nvim_set_current_win(nirc_data.display.preview_win.win)
-      vim.cmd[[silent! normal! G]]
-      api.nvim_set_current_win(cur_win)
-      break
-    end
-  end
+  local chan_id = nirc_data.channel_list[chan_name]
+  if not chan_id then return false end
+  api.nvim_set_current_buf(nirc_data.channels[chan_id].buf_no)
+  -- vim.cmd[[silent! normal! G]]
 end
 
 function display.next_channel()
   local nirc_data = require'nirc.data'
-  if #nirc_data.channels.list < 2 then return end
+  if #nirc_data.channels < 2 then return end
   local chan_name = ''
-  if nirc_data.active_channel == nirc_data.channels.list[#nirc_data.channels.list] then
-    chan_name = nirc_data.channels.list[1]
+  local current_channel = vim.b.NIRC_channel_name
+  if not current_channel then return end
+  local channel_id  = nirc_data.channel_list[current_channel]
+  if nirc_data.channels[channel_id + 1] then
+    chan_name = nirc_data.channels[channel_id + 1].name
   else
-    for i=1,#nirc_data.channels.list do
-      if nirc_data.active_channel == nirc_data.channels.list[i] then
-        chan_name = nirc_data.channels.list[i + 1]
-        break
-      end
-    end
+    -- last channel wrap arround
+    chan_name = nirc_data.channels[1].name
   end
   display.switch_channel(chan_name)
 end
 
 function display.prev_channel()
   local nirc_data = require'nirc.data'
-  if #nirc_data.channels.list < 2 then return end
+  if #nirc_data.channels < 2 then return end
   local chan_name = ''
-  if nirc_data.active_channel == nirc_data.channels.list[1] then
-    chan_name = nirc_data.channels.list[#nirc_data.channels.list]
+  local current_channel = vim.b.NIRC_channel_name
+  if not current_channel then return end
+  local channel_id  = nirc_data.channel_list[current_channel]
+  if nirc_data.channels[channel_id - 1] then
+    chan_name = nirc_data.channels[channel_id - 1].name
   else
-    for i=1,#nirc_data.channels.list do
-      if nirc_data.active_channel == nirc_data.channels.list[i] then
-        chan_name = nirc_data.channels.list[i - 1]
-        break
-      end
-    end
+    -- last channel wrap arround
+    chan_name = nirc_data.channels[#nirc_data.channels].name
   end
   display.switch_channel(chan_name)
 end
 
 function display.channels()
   local nirc_data = require'nirc.data'
-  return nirc_data.channels.list
+  local chan_names = {}
+  for _, channel in pairs(nirc_data.channels) do
+    table.insert(chan_names, channel.name)
+  end
+  return chan_names
 end
 
 return display
