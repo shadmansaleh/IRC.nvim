@@ -3,6 +3,9 @@ local display = {}
 local utils = require'nirc.utils'
 local keymaps = require'nirc.keymaps'
 local api = vim.api
+local fmt = string.fmt
+
+local win_width = 80 -- TODO: Figure out what to do with it :P
 
 function display.open_view()
   local nirc_data = require'nirc.data'
@@ -145,10 +148,8 @@ function display.show(msg)
     if api.nvim_buf_get_var(buf_id, 'NIRC_last_message_time') ~= time then
       -- If last message was older then 1 minute show current time
       api.nvim_buf_set_var(buf_id, 'NIRC_last_message_time', time)
-      local width = api.nvim_buf_get_options(buf_id, 'textwidth')
-      if not width or width == 0 then width = 80 end
       vim.fn.appendbufline(buf_id, line_cnt - 1,
-                           string.rep(' ', width - 9)..'[ '..time..' ]')
+                           string.rep(' ', win_width - 9)..'[ '..time..' ]')
       line_cnt = line_cnt + 1
    end
     -- Add the message to 2nd last line of buffer
@@ -158,31 +159,14 @@ end
 
 function display.format_msg(msg)
   if msg.disp_msg then return {msg.disp_msg} end
-  local separator = '┊'
-  local max_size = 10
-  local time = os.date('%2H:%2M')
   local name = msg.nick or msg.addr
-  if #name > max_size then
-    name = string.format('<%s.>',name:sub(1, max_size - 1))
-  elseif #name < max_size then
-    local size = #name
-    local r_padding = math.floor((max_size - size) / 2)
-    local l_padding
-    if ((2 * r_padding) + size) == max_size then
-      l_padding = r_padding
-    else
-      l_padding = r_padding + 1
-    end
-    name = string.format('%s<%s>%s', string.rep(' ', l_padding), name, string.rep(' ', r_padding))
-  else
-    name = '<'..name..'>'
-  end
   local message = msg.args[#msg.args]
-  local splited_message = utils.str_split_len(message, vim.fn.winwidth(0) - (1+5+2+2+max_size+2+2+1+2+5))
+  local splited_message = utils.str_split_len(message, win_width - #name - 3)
   local formated_message = {}
-  table.insert(formated_message, string.format(' %s  %s  %s  %s', time, name, separator, splited_message[1]))
+  table.insert(formated_message, fmt('%s > %s', name, splited_message[1]))
   for i=2, #splited_message do
-    table.insert(formated_message, string.format(' %s  %s  %s  %s', string.rep(' ', 5), string.rep(' ', max_size + 2), separator, splited_message[i]))
+    table.insert(formated_message, fmt('%s > %s', string.rep(' ', #name),
+                                       splited_message[i]))
   end
   return formated_message
 end
