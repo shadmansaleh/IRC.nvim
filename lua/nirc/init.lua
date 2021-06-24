@@ -6,7 +6,6 @@ local nirc = {}
 
 package.loaded['nirc.data'] = {
   active_client = '',
-  active_channel = '',
   configs = {
     servers = {},
   },
@@ -15,7 +14,7 @@ package.loaded['nirc.data'] = {
     server_list = {}
   },
   channels = {},
-  channel_list = {} -- Chan_name -> channel_id into channels table
+  channel_list = {} -- Chan_name & buf_nr -> channel_id into channels table
 }
 
 local nirc_data = require'nirc.data'
@@ -47,14 +46,10 @@ function nirc.setup(conf)
   vim.cmd [[
     augroup NIRC
     autocmd!
-    autocmd FileType nirc_preview nested autocmd NIRC BufEnter <buffer> setlocal statusline=%!v:lua.require'nirc.utils'.statusline()
-    autocmd FileType nirc_preview nested autocmd NIRC BufLeave <buffer> setlocal statusline=%!v:lua.require'nirc.utils'.statusline()
+    autocmd FileType nirc ++nested autocmd NIRC BufEnter <buffer> setlocal statusline=%!v:lua.require'nirc.utils'.statusline()
+    autocmd FileType nirc ++nested autocmd NIRC BufLeave <buffer> setlocal statusline=%!v:lua.require'nirc.utils'.statusline()
     augroup END]]
   end
-  vim.cmd [[
-    nnoremap <Plug>NIRC_goto_prompt <cmd>lua require("nirc.keymaps").goto_prompt()<CR>
-    inoremap <Plug>NIRC_send_msg <cmd>lua require("nirc.keymaps").send_msg()<CR>
-  ]]
 end
 
 return nirc

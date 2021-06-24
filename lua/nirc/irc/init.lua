@@ -54,7 +54,7 @@ function client:send_raw(...)
   if msg then self.conc:write(msg..'\r\n') end
 end
 
-function client:prompt(str)
+function client:prompt(str, current_channel)
   local args = vim.split(str, ' ')
   local cmd = ''
   if args[1]:byte(1) == string.byte('/') then
@@ -62,7 +62,7 @@ function client:prompt(str)
     table.remove(args, 1)
   else
     cmd = 'msg'
-    table.insert(args, 1, require'nirc.data'.active_channel)
+    table.insert(args, 1, current_channel)
   end
   self:send_cmd(cmd, unpack(args))
 end

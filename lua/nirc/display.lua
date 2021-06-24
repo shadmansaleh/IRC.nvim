@@ -3,7 +3,7 @@ local display = {}
 local utils = require'nirc.utils'
 local keymaps = require'nirc.keymaps'
 local api = vim.api
-local fmt = string.fmt
+local fmt = string.format
 
 local win_width = 80 -- TODO: Figure out what to do with it :P
 
@@ -63,7 +63,6 @@ function display.close_view()
   end
   nirc_data.display[server_name] = nil
   nirc_data.channel_list = nil
-  nirc_data.active_channel = nil
 end
 
 -- Open a new buffer for channel chan_name and return the buffer
@@ -75,7 +74,7 @@ function display.new_channel(chan_name, buf_id)
   api.nvim_buf_set_name(buf, chan_name)
   api.nvim_buf_set_var(buf, "NIRC_chan_name",chan_name)
   vim.fn.prompt_setprompt(buf, utils.get_prompt())
-  vim.fn.prompt_setcallback(buf, keymaps.send)
+  vim.fn.prompt_setcallback(buf, keymaps.send_msg)
 
   local nirc_data = require'nirc.data'
   table.insert(nirc_data.channels, {
@@ -122,8 +121,8 @@ function display.show(msg)
 
   -- Redirect these channels to different destination
   local redirect_channels = {
-    NickServ = nirc_data.active_channel,
-    ChanServ = nirc_data.active_channel,
+    NickServ = nirc_data.active_client,
+    ChanServ = nirc_data.active_client,
   }
 
   if redirect_channels[chan_name] then
@@ -133,11 +132,11 @@ function display.show(msg)
   if not nirc_data.channel_list[chan_name] then
     -- First message on this channel. Create the channel buffer
     -- [[ Don't think ever should happen
-    if #nirc_data.active_channel <= 0 then
-      nirc_data.active_channel = chan_name
-    end
+    -- if #nirc_data.active_channel <= 0 then
+    --   nirc_data.active_channel = chan_name
+    -- end
     -- ]]
-    display.new_channel(chan_name) -- TODO: Error chack
+    display.new_channel(tostring(chan_name)) -- TODO: Error chack
   end
 
   local buf_id = nirc_data.channels[nirc_data.channel_list[chan_name]]
@@ -145,7 +144,7 @@ function display.show(msg)
   for _, msg_str in pairs(msg_strs) do
     local line_cnt = api.nvim_buf_line_count(buf_id)
     local time = os.date('%2H:%2M')
-    if api.nvim_buf_get_var(buf_id, 'NIRC_last_message_time') ~= time then
+    if utils.buf_get_var(buf_id, 'NIRC_last_message_time') ~= time then
       -- If last message was older then 1 minute show current time
       api.nvim_buf_set_var(buf_id, 'NIRC_last_message_time', time)
       vim.fn.appendbufline(buf_id, line_cnt - 1,
