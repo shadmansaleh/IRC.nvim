@@ -58,8 +58,8 @@ function display.close_view()
   ]])
   server_data.win = nil
   server_data.tab_no = nil
-  for _, channel in pairs(nirc_data.channel) do
-    api.nvim_buf_delete(channel.buf_id)
+  for _, channel in pairs(nirc_data.channels) do
+    api.nvim_buf_delete(channel.buf_id, {force=true})
   end
   nirc_data.display[server_name] = nil
   nirc_data.channel_list = nil
@@ -139,10 +139,10 @@ function display.show(msg)
     display.new_channel(tostring(chan_name)) -- TODO: Error chack
   end
 
-  local buf_id = nirc_data.channels[nirc_data.channel_list[chan_name]]
+  local buf_id = nirc_data.channels[nirc_data.channel_list[chan_name]].buf_no
   local msg_strs = display.format_msg(msg)
-  for _, msg_str in pairs(msg_strs) do
-    local line_cnt = api.nvim_buf_line_count(buf_id)
+  local line_cnt = api.nvim_buf_line_count(buf_id)
+  if #msg_strs > 0 then
     local time = os.date('%2H:%2M')
     if utils.buf_get_var(buf_id, 'NIRC_last_message_time') ~= time then
       -- If last message was older then 1 minute show current time
@@ -150,7 +150,9 @@ function display.show(msg)
       vim.fn.appendbufline(buf_id, line_cnt - 1,
                            string.rep(' ', win_width - 9)..'[ '..time..' ]')
       line_cnt = line_cnt + 1
-   end
+    end
+  end
+  for _, msg_str in pairs(msg_strs) do
     -- Add the message to 2nd last line of buffer
     vim.fn.appendbufline(buf_id, line_cnt - 1, msg_str)
   end

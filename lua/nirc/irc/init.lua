@@ -34,13 +34,13 @@ function client:connect()
   local server_data = uv.getaddrinfo(conf.server, nil, {family = 'inet', socktype = 'stream'})
   assert(server_data, "Unable to locate " .. conf.server)
   conf.server_ip = server_data[1].addr
-  self.conc = uv.new_tcp()
+  self.conc = uv.new_tcp("inet")
   uv.tcp_connect(self.conc, conf.server_ip, conf.port, function(err)
     assert(not err, err)
     self.conc:read_start(vim.schedule_wrap(function(error, chunk)
       handlers.responce_handler(self, error, chunk)
     end))
-    vim.schedule_wrap(function() handlers.post_connect(self) end)()
+    vim.schedule(function() handlers.post_connect(self) end)
   end)
 end
 

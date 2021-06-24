@@ -23,7 +23,7 @@ function nirc.connect(conf_name)
   if nirc_data.configs.servers[conf_name] then
     nirc_data.clients[conf_name] = irc:new(nirc_data.configs.servers[conf_name])
     nirc_data.active_client = conf_name
-    display.open_view(conf_name)
+    display.open_view()
     local ok, reason = pcall(nirc_data.clients[conf_name].connect, nirc_data.clients[conf_name])
     if not ok then
       display.close_view()
@@ -46,8 +46,8 @@ function nirc.setup(conf)
   vim.cmd [[
     augroup NIRC
     autocmd!
-    autocmd FileType nirc ++nested autocmd NIRC BufEnter <buffer> setlocal statusline=%!v:lua.require'nirc.utils'.statusline()
-    autocmd FileType nirc ++nested autocmd NIRC BufLeave <buffer> setlocal statusline=%!v:lua.require'nirc.utils'.statusline()
+    autocmd FileType nirc autocmd NIRC BufEnter <buffer> setlocal statusline=%!v:lua.require'nirc.utils'.statusline()
+    autocmd FileType nirc autocmd NIRC BufLeave <buffer> setlocal statusline=%!v:lua.require'nirc.utils'.statusline()
     augroup END]]
   end
 end
