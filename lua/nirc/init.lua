@@ -11,11 +11,14 @@ package.loaded['nirc.data'] = {
     servers = {},
   },
   clients = {},
-  display = {},
+  display = {
+    server_list = {}
+  },
   channels = {
     list = {},
     msgs = {},
   },
+  channel_list = {} -- Chan_name -> bufId table
 }
 
 local nirc_data = require'nirc.data'
@@ -24,7 +27,7 @@ function nirc.connect(conf_name)
   if nirc_data.configs.servers[conf_name] then
     nirc_data.clients[conf_name] = irc:new(nirc_data.configs.servers[conf_name])
     nirc_data.active_client = conf_name
-    display.open_view()
+    display.open_view(conf_name)
     local ok, reason = pcall(nirc_data.clients[conf_name].connect, nirc_data.clients[conf_name])
     if not ok then
       display.close_view()

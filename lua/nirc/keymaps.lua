@@ -14,6 +14,10 @@ function keymaps.send_msg()
   vim.api.nvim_win_set_cursor(0, {1, #prompt - 1})
 end
 
+function keymaps.send(msg)
+  print(msg)
+end
+
 function keymaps.goto_prompt()
   local nirc_data = require'nirc.data'
   vim.api.nvim_set_current_win(nirc_data.display.prompt_win.win)
