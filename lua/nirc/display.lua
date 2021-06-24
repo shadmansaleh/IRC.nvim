@@ -37,12 +37,8 @@ function display.open_view()
   -- set options
   api.nvim_win_set_option(server_data.win, 'number', false)
   api.nvim_win_set_option(server_data.win, 'relativenumber', false)
-  api.nvim_buf_set_option(server_data.buf, 'filetype', 'nirc')
-  api.nvim_buf_set_option(server_data.buf, 'syntax', 'nirc')
-  api.nvim_buf_set_option(server_data.buf, 'buftype', 'prompt')
-  api.nvim_buf_set_name(server_data.buf, server_name)
+  display.new_channel(server_name, server_data.buf)
   vim.fn.prompt_setprompt(server_data.buf, "NIRC > ")
-  vim.fn.prompt_setcallback(server_data.buf, keymaps.send)
   vim.cmd('silent! startinsert')
   return true
 end
@@ -68,8 +64,8 @@ function display.close_view()
 end
 
 -- Open a new buffer for channel chan_name and return the buffer
-function display.new_channel(chan_name)
-  local buf = api.nvim_create_buf(false, false)
+function display.new_channel(chan_name, buf_id)
+  local buf = buf_id or api.nvim_create_buf(false, false)
   api.nvim_buf_set_option(buf, 'filetype', 'nirc')
   api.nvim_buf_set_option(buf, 'syntax', 'nirc')
   api.nvim_buf_set_option(buf, 'buftype', 'prompt')
@@ -100,15 +96,15 @@ function display.remove_channel(chan_name)
   return true
 end
 
+-- Display mesaage
 function display.show(msg)
   local nirc_data = require'nirc.data'
   local client = nirc_data.clients[nirc_data.active_client]
-  local chan_name = 'UnDetected'
+
+  -- Figure out what the xhannels name is suppose to be
+  local chan_name = 'UnDetected' -- Shouldn't ever be the case
   if msg.cmd == 'PRIVMSG' or msg.cmd == 'NOTICE'then
-    if msg.args[1] == client.config.nick-- or
-   --   (msg.args[1]:match('%A+') and
-  --      (msg.args[1]:byte(1) ~= string.byte('#') or msg.args[1]:byte(1) ~= string.byte('&')))
-        then
+    if msg.args[1] == client.config.nick then
       chan_name = msg.nick or nirc_data.active_client
     else
       if not msg.nick then
@@ -117,35 +113,35 @@ function display.show(msg)
         chan_name = msg.args[1]
       end
     end
-  -- elseif #nirc_data.active_channel > 0 then
-  --   chan_name = nirc_data.active_channel
   else
     chan_name = nirc_data.active_client
   end
-  if not nirc_data.channels.msgs[chan_name] then
-    if #nirc_data.active_channel <= 0 then nirc_data.active_channel = chan_name end
-    table.insert(nirc_data.channels.list, chan_name)
-    nirc_data.channels.msgs[chan_name] = {}
+
+  -- Redirect these channels to different destination
+  local redirect_channels = {
+    NickServ = nirc_data.active_channel,
+    ChanServ = nirc_data.active_channel,
+  }
+
+  if redirect_channels[chan_name] then
+    chan_name = redirect_channels[chan_name]
   end
+
+  if not nirc_data.channel_list[chan_name] then
+    -- First message on this channel. Create the channel buffer
+    -- [[ Don't think ever should happen
+    if #nirc_data.active_channel <= 0 then
+      nirc_data.active_channel = chan_name
+    end
+    -- ]]
+    display.new_channel(chan_name) -- TODO: Error chack
+  end
+
+  local buf_id = nirc_data.channels[nirc_data.channel_list[chan_name]]
   local msg_strs = display.format_msg(msg)
   for _, msg_str in pairs(msg_strs) do
-    table.insert(nirc_data.channels.msgs[chan_name], msg_str)
-  end
-  if not nirc_data.active_channel then
-    nirc_data.active_channel = chan_name
-  end
-  if chan_name == nirc_data.active_channel then
-    api.nvim_buf_set_lines(nirc_data.display.preview_win.buf, -1, -1, false, msg_strs)
-    local current_wins = api.nvim_tabpage_list_wins(0)
-    for _, win_no in pairs(current_wins) do
-      if win_no == nirc_data.display.preview_win.win then
-        local cur_win = api.nvim_get_current_win()
-        api.nvim_set_current_win(nirc_data.display.preview_win.win)
-        vim.cmd[[silent! normal! G]]
-        api.nvim_set_current_win(cur_win)
-        break
-      end
-    end
+    -- Add the message to 2nd last line of buffer
+    vim.fn.appendbufline(buf_id, api.nvim_buf_line_count(buf_id) - 1, msg_str)
   end
 end
 
