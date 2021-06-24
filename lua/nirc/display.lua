@@ -140,8 +140,19 @@ function display.show(msg)
   local buf_id = nirc_data.channels[nirc_data.channel_list[chan_name]]
   local msg_strs = display.format_msg(msg)
   for _, msg_str in pairs(msg_strs) do
+    local line_cnt = api.nvim_buf_line_count(buf_id)
+    local time = os.date('%2H:%2M')
+    if api.nvim_buf_get_var(buf_id, 'NIRC_last_message_time') ~= time then
+      -- If last message was older then 1 minute show current time
+      api.nvim_buf_set_var(buf_id, 'NIRC_last_message_time', time)
+      local width = api.nvim_buf_get_options(buf_id, 'textwidth')
+      if not width or width == 0 then width = 80 end
+      vim.fn.appendbufline(buf_id, line_cnt - 1,
+                           string.rep(' ', width - 9)..'[ '..time..' ]')
+      line_cnt = line_cnt + 1
+   end
     -- Add the message to 2nd last line of buffer
-    vim.fn.appendbufline(buf_id, api.nvim_buf_line_count(buf_id) - 1, msg_str)
+    vim.fn.appendbufline(buf_id, line_cnt - 1, msg_str)
   end
 end
 
