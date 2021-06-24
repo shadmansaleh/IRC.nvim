@@ -14,11 +14,8 @@ package.loaded['nirc.data'] = {
   display = {
     server_list = {}
   },
-  channels = {
-    list = {},
-    msgs = {},
-  },
-  channel_list = {} -- Chan_name -> bufId table
+  channels = {},
+  channel_list = {} -- Chan_name -> channel_id into channels table
 }
 
 local nirc_data = require'nirc.data'

@@ -1,11 +1,12 @@
 local display = {}
 
--- local utils = require'nirc.utils'
+local utils = require'nirc.utils'
 local keymaps = require'nirc.keymaps'
 local api = vim.api
 
-function display.open_view(server_name)
+function display.open_view()
   local nirc_data = require'nirc.data'
+  local server_name = nirc_data.active_client
   nirc_data.display = nirc_data.display
   if nirc_data.display[server_name] then
     -- Page layput already available switch to it
@@ -42,14 +43,13 @@ function display.open_view(server_name)
   api.nvim_buf_set_name(server_data.buf, server_name)
   vim.fn.prompt_setprompt(server_data.buf, "NIRC > ")
   vim.fn.prompt_setcallback(server_data.buf, keymaps.send)
-  api.nvim_buf_set_var(server_data.buf, 'NIRC_current_server', server_name)
   vim.cmd('silent! startinsert')
   return true
 end
 
-function display.close_view(server_name)
+function display.close_view()
   local nirc_data = require'nirc.data'
-  if not server_name then server_name = vim.b.NIRC_current_server end
+  local server_name = nirc_data.active_client
   if not server_name then return false end
   local server_data = nirc_data.display[server_name]
   api.nvim_buf_delete(server_data.buf, {force = true})
@@ -59,11 +59,45 @@ function display.close_view(server_name)
   ]])
   server_data.win = nil
   server_data.tab_no = nil
-  for _, buf_id in pairs(nirc_data.channel_list[server_name]) do
-    api.nvim_buf_delete(buf_id)
+  for _, channel in pairs(nirc_data.channel) do
+    api.nvim_buf_delete(channel.buf_id)
   end
   nirc_data.display[server_name] = nil
-  nirc_data.channel_list[server_name] = nil
+  nirc_data.channel_list = nil
+  nirc_data.active_channel = nil
+end
+
+-- Open a new buffer for channel chan_name and return the buffer
+function display.new_channel(chan_name)
+  local buf = api.nvim_create_buf(false, false)
+  api.nvim_buf_set_option(buf, 'filetype', 'nirc')
+  api.nvim_buf_set_option(buf, 'syntax', 'nirc')
+  api.nvim_buf_set_option(buf, 'buftype', 'prompt')
+  api.nvim_buf_set_name(buf, chan_name)
+  api.nvim_buf_set_var(buf, "NIRC_chan_name",chan_name)
+  vim.fn.prompt_setprompt(buf, utils.get_prompt())
+  vim.fn.prompt_setcallback(buf, keymaps.send)
+
+  local nirc_data = require'nirc.data'
+  table.insert(nirc_data.channels, {
+    buf_no = buf,
+    name = chan_name})
+  nirc_data.channel_list[chan_name] = #nirc_data.channels
+  nirc_data.channel_list[buf] = #nirc_data.channels
+  return buf
+end
+
+-- Remove the channel chan_name
+function display.remove_channel(chan_name)
+  local nirc_data = require'nirc.data'
+  local channel_id = nirc_data.channel_list[chan_name]
+  if not channel_id then return false end
+  local buf_id = nirc_data.channels[channel_id].buf_no
+  api.nvim_buf_delete(buf_id)
+  nirc_data.channel_list[buf_id] = nil
+  nirc_data.channel_list[chan_name] = nil
+  table.remove(nirc_data.channels, channel_id)
+  return true
 end
 
 function display.show(msg)
