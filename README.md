@@ -5,10 +5,6 @@ Irc client for neovim.
 Currently it's at very early stage of devlopment . It is some
 what usable. Not really :D
 
-### ScreenShot
-
-![Screenshot](https://user-images.githubusercontent.com/13149513/117023116-9f66c700-ad1a-11eb-98fa-21ff31e2f850.png)
-
 ### Usage instruction
 
 You create client with
@@ -34,16 +30,14 @@ use {'shadmansaleh/IRC.nvim',
   config = function()
     require'nirc'.setup({
       servers = {
-        freenode = {
+        libera = {
           nick = 'user',
           username = 'user',
           server = 'irc.libera.chat',
           port = 6667,
         },
       }
-      prompt_height = 1,
       statusline = true,
-      default_keymaps = true,
     })
   end,
 }
@@ -52,12 +46,12 @@ use {'shadmansaleh/IRC.nvim',
 To connect to server run `NIRCConnect` command
 
 ```vim
-:NIRCConnect freenode
+:NIRCConnect libera
 ```
 
-Then you'll be at a screen with two windows the one above is
-preview window and the one below is prompt window. You'll have to
-type commands in the prompt window
+Then you'll be at a server buffer . This will show all communications
+with server. When you join other channel or receive private message
+from someone new buffers will be opend to store them.
 
 You'll have to type in commands to interact with the server.  If
 an input starts with '/' it is treated as a command . And if it
@@ -76,11 +70,11 @@ To send message to a chennel
 ```
   /msg #neovim hello everybody
 ```
-ore just
+or just
 ```
 hello everybody
 ```
-If you have neovim's chennel opened in preview window
+If you have neovim's chennel opened
 
 ### Available vim commands
 - `NIRCConnect` server-name (Connect to server)
@@ -139,48 +133,10 @@ If you have neovim's chennel opened in preview window
 ### Config Options
 - servers\
   Server configuration table
-- prompt_height\
-  Height of prompt buffer.\
-  Defaults: 1.
 - statusline\
   Whether to show statusline containing channels\
   in preview window.\
   Default true
-- default_keymaps\
-  Whether to set default keymaps.\
-  Default: true
-
-### Keymaps
-- `<Plug>NIRC_goto_prompt` sends user to prompt window
-- `<Plug>NIRC_send_msg` sends message in prompt
-
-By default i,I,a,A,o,O in preview buffer in normal mode
-is bound to `<Plug>NIRC_goto_prompt`. Basically preview
-buffer is not for editing but prompt buffer is so sending
-you there. If you want to go to insert mode in preview
-buffer then you can just use `:startinsert`
-
-Also `<CR>` in prompt buffer in insert mode is bound to
-`<Plug>NIRC_send_msg`. So typeing enter will send the message.
-If you write multiple lines in the buffer and then trigger
-`<Plug>NIRC_send_msg` every line will be sent as indivisual
-message at once.
-
-If config option `default_keymaps` is set to false then
-only `<Plug>` bindings will be created but nothing will
-be bound to them . It's upto the users to choose what to
-do with them.
-
-You can easily send multiline mesaages by setting
-default_keymaps to false and binding `<Plug>NIRC_send_msg`
-to some other key but `<CR>` . Also while you're at
-it you can make the prompt win bigger with
-`prompt_height` config option to make it easier.
-
-The prompt buffer has filetype of `nirc_prompt`
-and preview buffer has filetype of `nirc_preview`
-You can esialy set keymaps/options for them
-targeting their filetype with `autocmd FileType`
 
 ### Highlight groups
 - NIRCTime -> Comment
@@ -189,17 +145,6 @@ targeting their filetype with `autocmd FileType`
 - NIRCNick -> String
 
 -> Means links to by default.
-
-### TODO
-- [ ] Quite literally alot.
-- [ ] Proper implementation of the client with as many commands supported as possible.
-- [ ] A proper UI to make it usable
-
-### what's not in the list
-For now SSL support is out of scope . I don't want to write an
-entire ssl library.  If you've a better idea on how to add ssl
-support please let me know :) . I want to add it but don't have
-a good enough way to do it.
 
 ### Similar projects
 - [marchelzo/ircnvim](https://github.com/marchelzo/ircnvim)
