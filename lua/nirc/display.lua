@@ -40,7 +40,7 @@ function display.open_view()
   -- set options
   api.nvim_win_set_option(server_data.win, 'number', false)
   api.nvim_win_set_option(server_data.win, 'relativenumber', false)
-  display.new_channel(server_name, server_data.buf)
+  server_data.buf = display.new_channel(server_name, server_data.buf)
   vim.fn.prompt_setprompt(server_data.buf, "NIRC > ")
   vim.cmd('silent! startinsert')
   return true
@@ -67,10 +67,17 @@ end
 
 -- Open a new buffer for channel chan_name and return the buffer
 function display.new_channel(chan_name, buf_id)
-  local buf = buf_id or api.nvim_create_buf(false, false)
+  local buf = api.nvim_create_buf(true, true)
+  if buf_id then
+    -- Abit hacky . But opening new tab doesn;t give me a scratch
+    -- buffer . So we open a new one and delete the older one
+    api.nvim_set_current_buf(buf)
+    api.nvim_buf_delete(buf_id, {force=true})
+  end
   api.nvim_buf_set_option(buf, 'filetype', 'nirc')
   api.nvim_buf_set_option(buf, 'syntax', 'nirc')
   api.nvim_buf_set_option(buf, 'buftype', 'prompt')
+  api.nvim_buf_set_option(buf, 'swapfile', false)
   api.nvim_buf_set_name(buf, chan_name)
   api.nvim_buf_set_var(buf, "NIRC_chan_name",chan_name)
   vim.fn.prompt_setprompt(buf, utils.get_prompt())
@@ -148,7 +155,7 @@ function display.show(msg)
       -- If last message was older then 1 minute show current time
       api.nvim_buf_set_var(buf_id, 'NIRC_last_message_time', time)
       vim.fn.appendbufline(buf_id, line_cnt - 1,
-                           string.rep(' ', win_width - 9)..'[ '..time..' ]')
+                           string.rep(' ', win_width - 9 - 10)..'[ '..time..' ]')
       line_cnt = line_cnt + 1
     end
   end
