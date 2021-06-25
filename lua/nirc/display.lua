@@ -79,7 +79,7 @@ function display.new_channel(chan_name, buf_id)
   api.nvim_buf_set_option(buf, 'buftype', 'prompt')
   api.nvim_buf_set_option(buf, 'swapfile', false)
   api.nvim_buf_set_name(buf, chan_name)
-  api.nvim_buf_set_var(buf, "NIRC_chan_name",chan_name)
+  api.nvim_buf_set_var(buf, "NIRC_channel_name",chan_name)
   vim.fn.prompt_setprompt(buf, utils.get_prompt())
   vim.fn.prompt_setcallback(buf, keymaps.send_msg)
 

@@ -44,8 +44,8 @@ function utils.statusline()
   local active_channel = vim.b.NIRC_channel_name
   local status = {}
   for _, channel in pairs(nirc_data.channels) do
+    local chan_name = ' ' .. channel.name .. ' '
     if channel.name == active_channel then
-      local chan_name = ' ' .. channel.name .. ' '
       table.insert(status, active_hl .. chan_name ..inactive_hl)
     else
       table.insert(status, chan_name)
