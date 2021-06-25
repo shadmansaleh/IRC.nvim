@@ -1,97 +1,120 @@
 local display = {}
 
 local utils = require'nirc.utils'
+local keymaps = require'nirc.keymaps'
+local api = vim.api
+local fmt = string.format
+
+local win_width = 80 -- TODO: Figure out what to do with it :P
 
 function display.open_view()
   local nirc_data = require'nirc.data'
+  local server_name = nirc_data.active_client
   nirc_data.display = nirc_data.display
-  if nirc_data.display.tab_no then
+  if nirc_data.display[server_name] then
     -- Page layput already available switch to it
-    local tab_no = nirc_data.display.tab_no
-    if tab_no and vim.api.nvim_tabpage_is_valid(tab_no) then
-      vim.api.nvim_set_current_tabpage(tab_no)
-      local prompt_win_no = nirc_data.display.prompt_win.win
-      if prompt_win_no and vim.api.nvim_win_is_valid(prompt_win_no) then
-        vim.api.nvim_set_current_win(prompt_win_no)
+    local server_data = nirc_data.display[server_name]
+    local tab_no = server_data.tab_no
+    if tab_no and api.nvim_tabpage_is_valid(tab_no) then
+      api.nvim_set_current_tabpage(tab_no)
+      local server_win = server_data.win
+      if server_win and api.nvim_win_is_valid(server_win) then
+        api.nvim_set_current_win(server_win)
         vim.cmd('silent! startinsert')
         return true
       end
     end
   end
-  -- create layout
-  vim.cmd [[
-  silent! tabnew
-  silent! setlocal splitbelow nonumber norelativenumber filetype=nirc_preview
-  silent! setlocal syn=nirc_preview buftype=nofile
-  silent! call nvim_buf_set_name(0, 'IRC_preview')
-  ]]
-  if nirc_data.configs.default_keymaps ~= false then
-    vim.cmd [[
-    silent! nmap <silent><buffer> i <Plug>NIRC_goto_prompt
-    silent! nmap <silent><buffer> a <Plug>NIRC_goto_prompt
-    silent! nmap <silent><buffer> I <Plug>NIRC_goto_prompt
-    silent! nmap <silent><buffer> A <Plug>NIRC_goto_prompt
-    silent! nmap <silent><buffer> o <Plug>NIRC_goto_prompt
-    silent! nmap <silent><buffer> O <Plug>NIRC_goto_prompt
-    ]]
-  end
-  vim.cmd(string.format([[
-  silent! %dsplit
-  silent! enew
-  silent! setlocal nonumber buftype=nofile bufhidden=hide norelativenumber
-  silent! setlocal virtualedit=onemore filetype=nirc_prompt
-  silent! call nvim_buf_set_name(0, 'IRC_prompt')
-  ]], nirc_data.configs.prompt_height or 1))
-  if nirc_data.configs.default_keymaps ~= false then
-    vim.cmd [[
-    silent! imap <silent><buffer> <CR> <Plug>NIRC_send_msg
-    ]]
-  end
-  nirc_data.display = {
-    tab_no = vim.api.nvim_get_current_tabpage(),
-    prompt_win = {
-      buf = vim.api.nvim_get_current_buf(),
-      win = vim.api.nvim_get_current_win(),
-    }
-  }
-  vim.cmd('silent! wincmd k')
-  nirc_data.display.preview_win = {
-    buf = vim.api.nvim_get_current_buf(),
-    win = vim.api.nvim_get_current_win(),
-  }
-  vim.api.nvim_set_current_win(nirc_data.display.prompt_win.win)
-  local prompt = utils.get_prompt()
-  vim.api.nvim_buf_set_lines(nirc_data.display.prompt_win.buf, 0, 0, false, {prompt})
+
+  -- create layout as it doesn't exist
+  local server_data = {}
+  nirc_data.display[server_name] = server_data
+  nirc_data.channel_list[server_name] = {}
+
+  vim.cmd("tabnew")
+  server_data.tab_no = api.nvim_get_current_tabpage()
+  server_data.buf = api.nvim_get_current_buf()
+  server_data.win = api.nvim_get_current_win()
+  api.nvim_set_current_buf(server_data.buf)
+
+  -- set options
+  api.nvim_win_set_option(server_data.win, 'number', false)
+  api.nvim_win_set_option(server_data.win, 'relativenumber', false)
+  server_data.buf = display.new_channel(server_name, server_data.buf)
+  vim.fn.prompt_setprompt(server_data.buf, "NIRC > ")
   vim.cmd('silent! startinsert')
-  vim.api.nvim_win_set_cursor(0, {1, #prompt - 1})
   return true
 end
 
 function display.close_view()
   local nirc_data = require'nirc.data'
-  vim.api.nvim_buf_delete(nirc_data.display.preview_win.buf, {force = true})
-  vim.api.nvim_buf_delete(nirc_data.display.prompt_win.buf, {force = true})
+  local server_name = nirc_data.active_client
+  if not server_name then return false end
+  local server_data = nirc_data.display[server_name]
+  api.nvim_buf_delete(server_data.buf, {force = true})
   vim.cmd([[
   silent! tabclose
   silent! stopinsert
   ]])
-  nirc_data.display.preview_win = nil
-  nirc_data.display.prompt_win = nil
-  nirc_data.display.tab_no = nil
-  nirc_data.channels.list = nil
-  nirc_data.channels.msgs = nil
-  nirc_data.active_channel = nil
+  server_data.win = nil
+  server_data.tab_no = nil
+  for _, channel in pairs(nirc_data.channels) do
+    api.nvim_buf_delete(channel.buf_id, {force=true})
+  end
+  nirc_data.display[server_name] = {}
+  nirc_data.channel_list = {}
 end
 
+-- Open a new buffer for channel chan_name and return the buffer
+function display.new_channel(chan_name, buf_id)
+  local buf = api.nvim_create_buf(true, true)
+  if buf_id then
+    -- Abit hacky . But opening new tab doesn;t give me a scratch
+    -- buffer . So we open a new one and delete the older one
+    api.nvim_set_current_buf(buf)
+    api.nvim_buf_delete(buf_id, {force=true})
+  end
+  api.nvim_buf_set_option(buf, 'filetype', 'nirc')
+  api.nvim_buf_set_option(buf, 'syntax', 'nirc')
+  api.nvim_buf_set_option(buf, 'buftype', 'prompt')
+  api.nvim_buf_set_option(buf, 'swapfile', false)
+  api.nvim_buf_set_name(buf, chan_name)
+  api.nvim_buf_set_var(buf, "NIRC_channel_name",chan_name)
+  vim.fn.prompt_setprompt(buf, utils.get_prompt())
+  vim.fn.prompt_setcallback(buf, keymaps.send_msg)
+  vim.cmd(fmt('autocmd NIRC BufEnter <buffer=%d> startinsert', buf))
+
+  local nirc_data = require'nirc.data'
+  table.insert(nirc_data.channels, {
+    buf_no = buf,
+    name = chan_name})
+  nirc_data.channel_list[chan_name] = #nirc_data.channels
+  nirc_data.channel_list[buf] = #nirc_data.channels
+  return buf
+end
+
+-- Remove the channel chan_name
+function display.remove_channel(chan_name)
+  local nirc_data = require'nirc.data'
+  local channel_id = nirc_data.channel_list[chan_name]
+  if not channel_id then return false end
+  local buf_id = nirc_data.channels[channel_id].buf_no
+  api.nvim_buf_delete(buf_id)
+  nirc_data.channel_list[buf_id] = nil
+  nirc_data.channel_list[chan_name] = nil
+  table.remove(nirc_data.channels, channel_id)
+  return true
+end
+
+-- Display mesaage
 function display.show(msg)
   local nirc_data = require'nirc.data'
   local client = nirc_data.clients[nirc_data.active_client]
-  local chan_name = 'UnDetected'
+
+  -- Figure out what the xhannels name is suppose to be
+  local chan_name = 'UnDetected' -- Shouldn't ever be the case
   if msg.cmd == 'PRIVMSG' or msg.cmd == 'NOTICE'then
-    if msg.args[1] == client.config.nick-- or
-   --   (msg.args[1]:match('%A+') and
-  --      (msg.args[1]:byte(1) ~= string.byte('#') or msg.args[1]:byte(1) ~= string.byte('&')))
-        then
+    if msg.args[1] == client.config.nick then
       chan_name = msg.nick or nirc_data.active_client
     else
       if not msg.nick then
@@ -100,123 +123,110 @@ function display.show(msg)
         chan_name = msg.args[1]
       end
     end
-  -- elseif #nirc_data.active_channel > 0 then
-  --   chan_name = nirc_data.active_channel
   else
     chan_name = nirc_data.active_client
   end
-  if not nirc_data.channels.msgs[chan_name] then
-    if #nirc_data.active_channel <= 0 then nirc_data.active_channel = chan_name end
-    table.insert(nirc_data.channels.list, chan_name)
-    nirc_data.channels.msgs[chan_name] = {}
+
+  -- Redirect these channels to different destination
+  local redirect_channels = {
+    NickServ = nirc_data.active_client,
+    ChanServ = nirc_data.active_client,
+    SaslServ = nirc_data.active_client,
+  }
+
+  if redirect_channels[chan_name] then
+    chan_name = redirect_channels[chan_name]
   end
+
+  if not nirc_data.channel_list[chan_name] then
+    -- First message on this channel. Create the channel buffer
+    -- [[ Don't think ever should happen
+    -- if #nirc_data.active_channel <= 0 then
+    --   nirc_data.active_channel = chan_name
+    -- end
+    -- ]]
+    display.new_channel(tostring(chan_name)) -- TODO: Error chack
+  end
+
+  local buf_id = nirc_data.channels[nirc_data.channel_list[chan_name]].buf_no
   local msg_strs = display.format_msg(msg)
-  for _, msg_str in pairs(msg_strs) do
-    table.insert(nirc_data.channels.msgs[chan_name], msg_str)
-  end
-  if not nirc_data.active_channel then
-    nirc_data.active_channel = chan_name
-  end
-  if chan_name == nirc_data.active_channel then
-    vim.api.nvim_buf_set_lines(nirc_data.display.preview_win.buf, -1, -1, false, msg_strs)
-    local current_wins = vim.api.nvim_tabpage_list_wins(0)
-    for _, win_no in pairs(current_wins) do
-      if win_no == nirc_data.display.preview_win.win then
-        local cur_win = vim.api.nvim_get_current_win()
-        vim.api.nvim_set_current_win(nirc_data.display.preview_win.win)
-        vim.cmd[[silent! normal! G]]
-        vim.api.nvim_set_current_win(cur_win)
-        break
-      end
+  local line_cnt = api.nvim_buf_line_count(buf_id)
+  if #msg_strs > 0 then
+    local time = os.date('%2H:%2M')
+    if utils.buf_get_var(buf_id, 'NIRC_last_message_time') ~= time then
+      -- If last message was older then 1 minute show current time
+      api.nvim_buf_set_var(buf_id, 'NIRC_last_message_time', time)
+      vim.fn.appendbufline(buf_id, line_cnt - 1,
+                           string.rep(' ', win_width - 9 - 10)..'[ '..time..' ]')
+      line_cnt = line_cnt + 1
     end
   end
+  -- Add the message to 2nd last line of buffer
+  vim.fn.appendbufline(buf_id, line_cnt - 1, msg_strs)
 end
 
 function display.format_msg(msg)
   if msg.disp_msg then return {msg.disp_msg} end
-  local separator = '┊'
-  local max_size = 10
-  local time = os.date('%2H:%2M')
   local name = msg.nick or msg.addr
-  if #name > max_size then
-    name = string.format('<%s.>',name:sub(1, max_size - 1))
-  elseif #name < max_size then
-    local size = #name
-    local r_padding = math.floor((max_size - size) / 2)
-    local l_padding
-    if ((2 * r_padding) + size) == max_size then
-      l_padding = r_padding
-    else
-      l_padding = r_padding + 1
-    end
-    name = string.format('%s<%s>%s', string.rep(' ', l_padding), name, string.rep(' ', r_padding))
-  else
-    name = '<'..name..'>'
-  end
   local message = msg.args[#msg.args]
-  local splited_message = utils.str_split_len(message, vim.fn.winwidth(0) - (1+5+2+2+max_size+2+2+1+2+5))
+  local splited_message = utils.str_split_len(message, win_width - #name - 3)
   local formated_message = {}
-  table.insert(formated_message, string.format(' %s  %s  %s  %s', time, name, separator, splited_message[1]))
+  table.insert(formated_message, fmt('%s > %s', name, splited_message[1]))
   for i=2, #splited_message do
-    table.insert(formated_message, string.format(' %s  %s  %s  %s', string.rep(' ', 5), string.rep(' ', max_size + 2), separator, splited_message[i]))
+    table.insert(formated_message, fmt('%s > %s', string.rep(' ', #name),
+                                       splited_message[i]))
   end
   return formated_message
 end
 
+-- Switch to channel chan_name
 function display.switch_channel(chan_name)
   local nirc_data = require'nirc.data'
-  if not nirc_data.channels.msgs[chan_name] then return end
-  nirc_data.active_channel = chan_name
-  vim.api.nvim_buf_set_lines(nirc_data.display.preview_win.buf, 0, -1, false, nirc_data.channels.msgs[chan_name])
-  local current_wins = vim.api.nvim_tabpage_list_wins(0)
-  for _, win_no in pairs(current_wins) do
-    if win_no == nirc_data.display.preview_win.win then
-      local cur_win = vim.api.nvim_get_current_win()
-      vim.api.nvim_set_current_win(nirc_data.display.preview_win.win)
-      vim.cmd[[silent! normal! G]]
-      vim.api.nvim_set_current_win(cur_win)
-      break
-    end
-  end
+  local chan_id = nirc_data.channel_list[chan_name]
+  if not chan_id then return false end
+  api.nvim_set_current_buf(nirc_data.channels[chan_id].buf_no)
+  -- vim.cmd[[silent! normal! G]]
 end
 
 function display.next_channel()
   local nirc_data = require'nirc.data'
-  if #nirc_data.channels.list < 2 then return end
+  if #nirc_data.channels < 2 then return end
   local chan_name = ''
-  if nirc_data.active_channel == nirc_data.channels.list[#nirc_data.channels.list] then
-    chan_name = nirc_data.channels.list[1]
+  local current_channel = vim.b.NIRC_channel_name
+  if not current_channel then return end
+  local channel_id  = nirc_data.channel_list[current_channel]
+  if nirc_data.channels[channel_id + 1] then
+    chan_name = nirc_data.channels[channel_id + 1].name
   else
-    for i=1,#nirc_data.channels.list do
-      if nirc_data.active_channel == nirc_data.channels.list[i] then
-        chan_name = nirc_data.channels.list[i + 1]
-        break
-      end
-    end
+    -- last channel wrap arround
+    chan_name = nirc_data.channels[1].name
   end
   display.switch_channel(chan_name)
 end
 
 function display.prev_channel()
   local nirc_data = require'nirc.data'
-  if #nirc_data.channels.list < 2 then return end
+  if #nirc_data.channels < 2 then return end
   local chan_name = ''
-  if nirc_data.active_channel == nirc_data.channels.list[1] then
-    chan_name = nirc_data.channels.list[#nirc_data.channels.list]
+  local current_channel = vim.b.NIRC_channel_name
+  if not current_channel then return end
+  local channel_id  = nirc_data.channel_list[current_channel]
+  if nirc_data.channels[channel_id - 1] then
+    chan_name = nirc_data.channels[channel_id - 1].name
   else
-    for i=1,#nirc_data.channels.list do
-      if nirc_data.active_channel == nirc_data.channels.list[i] then
-        chan_name = nirc_data.channels.list[i - 1]
-        break
-      end
-    end
+    -- last channel wrap arround
+    chan_name = nirc_data.channels[#nirc_data.channels].name
   end
   display.switch_channel(chan_name)
 end
 
 function display.channels()
   local nirc_data = require'nirc.data'
-  return nirc_data.channels.list
+  local chan_names = {}
+  for _, channel in pairs(nirc_data.channels) do
+    table.insert(chan_names, channel.name)
+  end
+  return chan_names
 end
 
 return display

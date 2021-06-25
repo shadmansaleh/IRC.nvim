@@ -6,16 +6,15 @@ local nirc = {}
 
 package.loaded['nirc.data'] = {
   active_client = '',
-  active_channel = '',
   configs = {
     servers = {},
   },
   clients = {},
-  display = {},
-  channels = {
-    list = {},
-    msgs = {},
+  display = {
+    server_list = {}
   },
+  channels = {},
+  channel_list = {} -- Chan_name & buf_nr -> channel_id into channels table
 }
 
 local nirc_data = require'nirc.data'
@@ -38,23 +37,21 @@ end
 function nirc.setup(conf)
   nirc_data.configs = conf
   vim.cmd [[
+    augroup NIRC
+    autocmd!
+    augroup END
     command! NIRCChannelNext lua require('nirc.display').next_channel()
     command! NIRCChannelPrev lua require('nirc.display').prev_channel()
     command! -nargs=1 -complete=customlist,v:lua.require'nirc.display'.channels NIRCChannelSwitch lua require('nirc.display').switch_channel(<q-args>)
     command! -nargs=1 NIRCConnect lua require('nirc').connect(<q-args>)
+    autocmd NIRC ExitPre * lua require'nirc.utils'.force_quit()
   ]]
   if nirc_data.configs.statusline ~= false then
   vim.cmd [[
-    augroup NIRC
-    autocmd!
-    autocmd FileType nirc_preview nested autocmd NIRC BufEnter <buffer> setlocal statusline=%!v:lua.require'nirc.utils'.statusline()
-    autocmd FileType nirc_preview nested autocmd NIRC BufLeave <buffer> setlocal statusline=%!v:lua.require'nirc.utils'.statusline()
-    augroup END]]
+    autocmd FileType nirc autocmd NIRC BufEnter <buffer> setlocal statusline=%!v:lua.require'nirc.utils'.statusline()
+    autocmd FileType nirc autocmd NIRC BufLeave <buffer> setlocal statusline=%!v:lua.require'nirc.utils'.statusline()
+    ]]
   end
-  vim.cmd [[
-    nnoremap <Plug>NIRC_goto_prompt <cmd>lua require("nirc.keymaps").goto_prompt()<CR>
-    inoremap <Plug>NIRC_send_msg <cmd>lua require("nirc.keymaps").send_msg()<CR>
-  ]]
 end
 
 return nirc

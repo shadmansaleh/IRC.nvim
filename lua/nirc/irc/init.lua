@@ -34,13 +34,13 @@ function client:connect()
   local server_data = uv.getaddrinfo(conf.server, nil, {family = 'inet', socktype = 'stream'})
   assert(server_data, "Unable to locate " .. conf.server)
   conf.server_ip = server_data[1].addr
-  self.conc = uv.new_tcp()
+  self.conc = uv.new_tcp("inet")
   uv.tcp_connect(self.conc, conf.server_ip, conf.port, function(err)
     assert(not err, err)
     self.conc:read_start(vim.schedule_wrap(function(error, chunk)
       handlers.responce_handler(self, error, chunk)
     end))
-    vim.schedule_wrap(function() handlers.post_connect(self) end)()
+    vim.schedule(function() handlers.post_connect(self) end)
   end)
 end
 
@@ -54,15 +54,15 @@ function client:send_raw(...)
   if msg then self.conc:write(msg..'\r\n') end
 end
 
-function client:prompt(str)
+function client:prompt(str, current_channel)
   local args = vim.split(str, ' ')
   local cmd = ''
   if args[1]:byte(1) == string.byte('/') then
     cmd = args[1]:sub(2)
     table.remove(args, 1)
-  else
+  elseif (current_channel) then
     cmd = 'msg'
-    table.insert(args, 1, require'nirc.data'.active_channel)
+    table.insert(args, 1, current_channel)
   end
   self:send_cmd(cmd, unpack(args))
 end
