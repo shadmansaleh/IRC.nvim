@@ -82,6 +82,7 @@ function display.new_channel(chan_name, buf_id)
   api.nvim_buf_set_var(buf, "NIRC_channel_name",chan_name)
   vim.fn.prompt_setprompt(buf, utils.get_prompt())
   vim.fn.prompt_setcallback(buf, keymaps.send_msg)
+  vim.cmd(fmt('autocmd NIRC BufEnter <buffer=%d> startinsert', buf))
 
   local nirc_data = require'nirc.data'
   table.insert(nirc_data.channels, {
@@ -160,10 +161,8 @@ function display.show(msg)
       line_cnt = line_cnt + 1
     end
   end
-  for _, msg_str in pairs(msg_strs) do
-    -- Add the message to 2nd last line of buffer
-    vim.fn.appendbufline(buf_id, line_cnt - 1, msg_str)
-  end
+  -- Add the message to 2nd last line of buffer
+  vim.fn.appendbufline(buf_id, line_cnt - 1, msg_strs)
 end
 
 function display.format_msg(msg)
