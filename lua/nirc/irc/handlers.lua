@@ -160,8 +160,8 @@ end
 
 function handlers.ERROR(client, responce)
   if responce.args[#responce.args]:upper():find('QUIT') then
-    client:disconnect()
     require'nirc.display'.close_view()
+    client:disconnect()
   end
 end
 

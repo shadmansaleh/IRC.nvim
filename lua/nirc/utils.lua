@@ -60,4 +60,14 @@ function utils.buf_get_var(buf_id, key)
   return result
 end
 
+function utils.force_quit()
+  local ok, nirc_data = pcall(require, 'nirc.data')
+  if not ok then return end
+  if not nirc_data.active_client or nirc_data.active_client == '' then return end
+  local client = nirc_data.clients[nirc_data.active_client]
+  if not client then return end
+  require'nirc.display'.close_view()
+  client:disconnect()
+end
+
 return utils

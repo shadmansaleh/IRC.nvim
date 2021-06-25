@@ -60,7 +60,7 @@ function client:prompt(str, current_channel)
   if args[1]:byte(1) == string.byte('/') then
     cmd = args[1]:sub(2)
     table.remove(args, 1)
-  else
+  elseif (current_channel) then
     cmd = 'msg'
     table.insert(args, 1, current_channel)
   end

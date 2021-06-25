@@ -37,18 +37,20 @@ end
 function nirc.setup(conf)
   nirc_data.configs = conf
   vim.cmd [[
+    augroup NIRC
+    autocmd!
+    augroup END
     command! NIRCChannelNext lua require('nirc.display').next_channel()
     command! NIRCChannelPrev lua require('nirc.display').prev_channel()
     command! -nargs=1 -complete=customlist,v:lua.require'nirc.display'.channels NIRCChannelSwitch lua require('nirc.display').switch_channel(<q-args>)
     command! -nargs=1 NIRCConnect lua require('nirc').connect(<q-args>)
+    autocmd NIRC ExitPre * lua require'nirc.utils'.force_quit()
   ]]
   if nirc_data.configs.statusline ~= false then
   vim.cmd [[
-    augroup NIRC
-    autocmd!
     autocmd FileType nirc autocmd NIRC BufEnter <buffer> setlocal statusline=%!v:lua.require'nirc.utils'.statusline()
     autocmd FileType nirc autocmd NIRC BufLeave <buffer> setlocal statusline=%!v:lua.require'nirc.utils'.statusline()
-    augroup END]]
+    ]]
   end
 end
 

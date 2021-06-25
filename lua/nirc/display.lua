@@ -61,8 +61,8 @@ function display.close_view()
   for _, channel in pairs(nirc_data.channels) do
     api.nvim_buf_delete(channel.buf_id, {force=true})
   end
-  nirc_data.display[server_name] = nil
-  nirc_data.channel_list = nil
+  nirc_data.display[server_name] = {}
+  nirc_data.channel_list = {}
 end
 
 -- Open a new buffer for channel chan_name and return the buffer
@@ -130,6 +130,7 @@ function display.show(msg)
   local redirect_channels = {
     NickServ = nirc_data.active_client,
     ChanServ = nirc_data.active_client,
+    SaslServ = nirc_data.active_client,
   }
 
   if redirect_channels[chan_name] then
