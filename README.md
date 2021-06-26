@@ -43,6 +43,11 @@ use {'shadmansaleh/IRC.nvim',
 }
 ```
 
+It's not recomanded toput password in configuration. You can open nvim
+with password in NIRC_{config_name} for example NIRC_libera for
+liberas password.  Or best don't do any of it, you'll be prompted for
+password when connecting.
+
 To connect to server run `NIRCConnect` command
 
 ```vim

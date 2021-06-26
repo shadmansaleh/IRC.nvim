@@ -70,4 +70,12 @@ function utils.force_quit()
   client:disconnect()
 end
 
+function utils.get_password(conf_name)
+  local pass = os.getenv("NIRC_"..conf_name)
+  if pass then return pass end
+  pass = vim.fn.inputsecret('Password: ' )
+  vim.cmd [[echo ""]]
+  return pass ~= "" and pass or nil
+end
+
 return utils
