@@ -3,8 +3,8 @@ local utils = {}
 local api = vim.api
 
 function utils.get_prompt()
-  local nirc_data = require'nirc.data'
-  return string.format('%s > ', nirc_data.clients[nirc_data.active_client].config.nick)
+  local irc_data = require'irc.data'
+  return string.format('%s > ', irc_data.clients[irc_data.active_client].config.nick)
 end
 
 function utils.str_split_len(str, len)
@@ -39,11 +39,11 @@ end
 function utils.statusline()
   local active_hl = '%#visual#'
   local inactive_hl = '%#StatusLine#'
-  local ok, nirc_data = pcall(require, 'nirc.data')
+  local ok, irc_data = pcall(require, 'irc.data')
   if not ok then return '' end
-  local active_channel = vim.b.NIRC_channel_name
+  local active_channel = vim.b.IRC_channel_name
   local status = {}
-  for _, channel in pairs(nirc_data.channels) do
+  for _, channel in pairs(irc_data.channels) do
     local chan_name = ' ' .. channel.name .. ' '
     if channel.name == active_channel then
       table.insert(status, active_hl .. chan_name ..inactive_hl)
@@ -61,17 +61,17 @@ function utils.buf_get_var(buf_id, key)
 end
 
 function utils.force_quit()
-  local ok, nirc_data = pcall(require, 'nirc.data')
+  local ok, irc_data = pcall(require, 'irc.data')
   if not ok then return end
-  if not nirc_data.active_client or nirc_data.active_client == '' then return end
-  local client = nirc_data.clients[nirc_data.active_client]
+  if not irc_data.active_client or irc_data.active_client == '' then return end
+  local client = irc_data.clients[irc_data.active_client]
   if not client then return end
-  require'nirc.display'.close_view()
+  require'irc.display'.close_view()
   client:disconnect()
 end
 
 function utils.get_password(conf_name)
-  local pass = os.getenv("NIRC_"..conf_name)
+  local pass = os.getenv("IRC_"..conf_name)
   if pass then return pass end
   pass = vim.fn.inputsecret('Password: ' )
   vim.cmd [[echo ""]]

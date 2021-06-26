@@ -10,7 +10,7 @@ what usable. Not really :D
 You create client with
 
 ```lua
-  require'nirc'.setup(config)
+  require'irc'.setup(config)
 ```
 
 Where default server config is
@@ -18,8 +18,8 @@ Where default server config is
 local default_server_config = {
   server = 'irc.freenode.net',
   port = 6667,
-  nick = os.getenv('USER') or 'nirc_user',
-  username = os.getenv('USER') or 'nirc_user',
+  nick = os.getenv('USER') or 'irc_user',
+  username = os.getenv('USER') or 'irc_user',
   password = nil,
 }
 ```
@@ -28,7 +28,7 @@ Packer config example:
 ```lua
 use {'shadmansaleh/IRC.nvim', 
   config = function()
-    require'nirc'.setup({
+    require'irc'.setup({
       servers = {
         libera = {
           nick = 'user',
@@ -44,14 +44,14 @@ use {'shadmansaleh/IRC.nvim',
 ```
 
 It's not recomanded toput password in configuration. You can open nvim
-with password in NIRC_{config_name} for example NIRC_libera for
+with password in IRC_{config_name} for example IRC_libera for
 liberas password.  Or best don't do any of it, you'll be prompted for
 password when connecting.
 
-To connect to server run `NIRCConnect` command
+To connect to server run `IRCConnect` command
 
 ```vim
-:NIRCConnect libera
+:IRCConnect libera
 ```
 
 Then you'll be at a server buffer . This will show all communications
@@ -82,10 +82,10 @@ hello everybody
 If you have neovim's chennel opened
 
 ### Available vim commands
-- `NIRCConnect` server-name (Connect to server)
-- `NIRCChannelNext` (Go to next channel)
-- `NIRCChannelPrev` (Go to previous channel)
-- `NIRCChannelSwitch` channel-name (Go to specific channel)
+- `IRCConnect` server-name (Connect to server)
+- `IRCChannelNext` (Go to next channel)
+- `IRCChannelPrev` (Go to previous channel)
+- `IRCChannelSwitch` channel-name (Go to specific channel)
 
 ### Supported IRC commands:
 <details>
@@ -144,10 +144,10 @@ If you have neovim's chennel opened
   Default true
 
 ### Highlight groups
-- NIRCTime -> Comment
+- IRCTime -> Comment
 - NIRXMessage -> Normal
-- NIRCMention -> Special
-- NIRCNick -> String
+- IRCMention -> Special
+- IRCNick -> String
 
 -> Means links to by default.
 

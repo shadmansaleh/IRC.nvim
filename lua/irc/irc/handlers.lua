@@ -9,7 +9,7 @@
 --]]
 local handlers = {}
 
-local protocol = require'nirc.irc.protocol'
+local protocol = require'irc.irc.protocol'
 
 local numerics = {
   ['001'] = 'RPL_WELCOME',
@@ -136,7 +136,7 @@ end
 
 -- Gets called for all events
 function handlers.default_handler(client, responce)
-  require'nirc.display'.show(responce)
+  require'irc.display'.show(responce)
 end
 
 -- Handle pings
@@ -160,7 +160,7 @@ end
 
 function handlers.ERROR(client, responce)
   if responce.args[#responce.args]:upper():find('QUIT') then
-    require'nirc.display'.close_view()
+    require'irc.display'.close_view()
     client:disconnect()
   end
 end
