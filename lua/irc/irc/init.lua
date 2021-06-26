@@ -10,8 +10,8 @@
 
 local client = {}
 
-local handlers = require('nirc.irc.handlers')
-local protocol = require('nirc.irc.protocol')
+local handlers = require('irc.irc.handlers')
+local protocol = require('irc.irc.protocol')
 
 local uv = vim.loop
 
@@ -21,8 +21,8 @@ function client:new(config)
   local default_config = {
     server = 'irc.libera.chat',
     port = 6667,
-    nick = os.getenv('USER') or 'nirc_user',
-    username = os.getenv('USER') or 'nirc_user',
+    nick = os.getenv('USER') or 'irc_user',
+    username = os.getenv('USER') or 'irc_user',
   }
   new_client.config = vim.tbl_extend('keep', config, default_config)
   return setmetatable(new_client, {__index = client})
@@ -68,13 +68,13 @@ function client:prompt(str, current_channel)
 end
 
 function client:disconnect()
-  local nirc_data = require'nirc.data'
+  local irc_data = require'irc.data'
   self.conc:read_stop()
   if not self.conc:is_closing() then
     self.conc:close()
   end
-  nirc_data.clients[nirc_data.active_client] = nil
-  nirc_data.active_client = nil
+  irc_data.clients[irc_data.active_client] = nil
+  irc_data.active_client = nil
 end
 
 return client

@@ -14,7 +14,7 @@
 
 --]]
 
-local display = require'nirc.display'
+local display = require'irc.display'
 local protocol = {}
 
 -- Command patterns used by default handler to handle commands
@@ -121,19 +121,19 @@ function command_handlers.msg(client, _, ...)
     args = {args[1], args[2]:sub(2)},
   }
   parsed_msg.nick = client.config.nick
-  require'nirc.display'.show(parsed_msg)
+  require'irc.display'.show(parsed_msg)
   return true, 'command sent'
 end
 
 function command_handlers.part(client, _, ...)
   local chan_name = select(1, ...)
   if chan_name == nil then
-    chan_name = vim.b.NIRC_channel_name
+    chan_name = vim.b.IRC_channel_name
   end
   client:send_raw(protocol.commands_strs.part[1], chan_name, select(2, ...) or '')
   display.remove_channel(chan_name)
-  if vim.b.NIRC_channel_name == chan_name then
-    require'nirc.display'.prev_channel()
+  if vim.b.IRC_channel_name == chan_name then
+    require'irc.display'.prev_channel()
   end
   return true, 'Command sent'
 end
