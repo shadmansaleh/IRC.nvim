@@ -21,7 +21,9 @@ local nirc_data = require'nirc.data'
 
 function nirc.connect(conf_name)
   if nirc_data.configs.servers[conf_name] then
-    nirc_data.clients[conf_name] = irc:new(nirc_data.configs.servers[conf_name])
+    local conf = vim.deepcopy(nirc_data.configs.servers[conf_name])
+    if not conf.password then conf.password = utils.get_password(conf_name) end
+    nirc_data.clients[conf_name] = irc:new(conf)
     nirc_data.active_client = conf_name
     display.open_view()
     local ok, reason = pcall(nirc_data.clients[conf_name].connect, nirc_data.clients[conf_name])
