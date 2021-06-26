@@ -5,6 +5,25 @@ Irc client for neovim.
 Currently it's at very early stage of devlopment . It is some
 what usable. Not really :D
 
+### Requirements
+  - neovim 0.5
+  - [openssl](https://github.com/zhaozg/lua-openssl) (optional | For ssl support)
+
+### Instalation
+  ** Packer **
+  ```lua
+    use {'shadmansaleh/IRC.nvim', rocks = 'openssl'}
+
+  ```
+  ** VimPlug **
+  ```vim
+    Plug "shadmansaleh/IRC.nvim"
+  ```
+  You'll have to install [openssl](https://github.com/zhaozg/lua-openssl) separatly.
+  If you have luarocks installed you can system-wide install it with
+  ```
+    sudo luarocks install openssl
+  ```
 ### Usage instruction
 
 You create client with
@@ -21,12 +40,13 @@ local default_server_config = {
   nick = os.getenv('USER') or 'irc_user',
   username = os.getenv('USER') or 'irc_user',
   password = nil,
+  use_ssl = true,
 }
 ```
 
 Packer config example:
 ```lua
-use {'shadmansaleh/IRC.nvim', 
+use {'shadmansaleh/IRC.nvim', rocks = 'openssl',
   config = function()
     require'irc'.setup({
       servers = {
@@ -35,6 +55,7 @@ use {'shadmansaleh/IRC.nvim',
           username = 'user',
           server = 'irc.libera.chat',
           port = 6667,
+          use_ssl = true,
         },
       }
       statusline = true,
