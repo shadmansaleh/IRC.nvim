@@ -23,6 +23,7 @@ function client:new(config)
     port = 6667,
     nick = os.getenv('USER') or 'irc_user',
     username = os.getenv('USER') or 'irc_user',
+    use_ssl = true,
   }
   new_client.config = vim.tbl_extend('keep', config, default_config)
   return setmetatable(new_client, {__index = client})
@@ -34,14 +35,32 @@ function client:connect()
   local server_data = uv.getaddrinfo(conf.server, nil, {family = 'inet', socktype = 'stream'})
   assert(server_data, "Unable to locate " .. conf.server)
   conf.server_ip = server_data[1].addr
-  self.conc = uv.new_tcp("inet")
-  uv.tcp_connect(self.conc, conf.server_ip, conf.port, function(err)
-    assert(not err, err)
-    self.conc:read_start(vim.schedule_wrap(function(error, chunk)
-      handlers.responce_handler(self, error, chunk)
-    end))
-    vim.schedule(function() handlers.post_connect(self) end)
-  end)
+  if not conf.use_ssl then
+    -- Connect without ssl
+    self.conc = uv.new_tcp("inet")
+    uv.tcp_connect(self.conc, conf.server_ip, conf.port, function(err)
+      assert(not err, err)
+      self.conc:read_start(vim.schedule_wrap(function(error, chunk)
+        handlers.responce_handler(self, error, chunk)
+      end))
+      vim.schedule(function() handlers.post_connect(self) end)
+    end)
+  else
+    -- Connect with ssl
+    local openssl_available = pcall(require, 'openssl')
+    assert(openssl_available, [[Install openssl to have ssl connection
+    Or set use_ssl to false in config to disable ssl connection]])
+    self.conc = require'irc.irc.ssl'.connect{
+      host = conf.server_ip,
+      port = conf.port,
+      connect_cb = function()
+        vim.schedule(function() handlers.post_connect(self) end)
+      end,
+      reader_cb = vim.schedule_wrap(function(chunk)
+        print('data'..chunk)
+        handlers.responce_handler(self, nil, chunk)
+      end)}
+  end
 end
 
 function client:send_cmd(cmd, ...)
@@ -69,8 +88,12 @@ end
 
 function client:disconnect()
   local irc_data = require'irc.data'
-  self.conc:read_stop()
-  if not self.conc:is_closing() then
+  if not self.config.use_ssl then
+    self.conc:read_stop()
+    if not self.conc:is_closing() then
+      self.conc:close()
+    end
+  else
     self.conc:close()
   end
   irc_data.clients[irc_data.active_client] = nil
