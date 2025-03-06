@@ -59,7 +59,7 @@ function display.close_view()
   server_data.win = nil
   server_data.tab_no = nil
   for _, channel in pairs(irc_data.channels) do
-    api.nvim_buf_delete(channel.buf_id, {force=true})
+    api.nvim_buf_delete(channel.buf_id or 0, {force=true})
   end
   irc_data.display[server_name] = {}
   irc_data.channel_list = {}
@@ -99,7 +99,7 @@ function display.remove_channel(chan_name)
   local channel_id = irc_data.channel_list[chan_name]
   if not channel_id then return false end
   local buf_id = irc_data.channels[channel_id].buf_no
-  api.nvim_buf_delete(buf_id)
+  api.nvim_buf_delete(buf_id, {force=true})
   irc_data.channel_list[buf_id] = nil
   irc_data.channel_list[chan_name] = nil
   table.remove(irc_data.channels, channel_id)
